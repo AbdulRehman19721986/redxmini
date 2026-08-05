@@ -138,9 +138,22 @@ try {
  *                                                                           *
  *****************************************************************************/
 
-const gTTS = require('../lib/tts');
 const fs = require('fs');
 const path = require('path');
+let gTTS;
+try {
+    gTTS = require('../lib/tts');
+} catch {
+    // Keep the media bundle loadable if a stale deployment omitted lib/tts.
+    // The command will return a useful feature-level error instead of
+    // preventing every other media command from registering.
+    gTTS = class MissingTTS {
+        constructor() {}
+        save(_filePath, callback) {
+            callback(new Error('TTS helper is not installed on this deployment'));
+        }
+    };
+}
 
 module.exports = {
     command: 'tts',

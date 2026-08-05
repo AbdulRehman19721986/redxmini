@@ -958,7 +958,16 @@ try {
 
 const fs = require('fs');
 const path = require('path');
-const { dataFile } = require('../lib/paths.js');
+let dataFile;
+try {
+    ({ dataFile } = require('../lib/paths.js'));
+} catch {
+    dataFile = (name) => {
+        const dataDir = path.join(__dirname, '..', 'data');
+        if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+        return path.join(dataDir, name);
+    };
+}
 const store = require('../lib/lightweight_store.js');
 
 const MONGO_URL = process.env.MONGO_URL;

@@ -1096,9 +1096,20 @@ try {
  *                                                                           *
  *****************************************************************************/
 
-const { getBin } = require('../lib/compile.js');
 const { exec } = require('child_process');
 const { promisify } = require('util');
+const path = require('path');
+const fs = require('fs');
+let getBin;
+try {
+    ({ getBin } = require('../lib/compile.js'));
+} catch {
+    getBin = (name) => {
+        const binary = path.join(__dirname, '..', 'bin', `${name}.js`);
+        if (!fs.existsSync(binary)) throw new Error(`${name} helper is not installed`);
+        return binary;
+    };
+}
 
 const execAsync = promisify(exec);
 
@@ -2921,9 +2932,18 @@ try {
 const { downloadMediaMessage } = require('@whiskeysockets/baileys');
 const { exec } = require('child_process');
 const { promisify } = require('util');
-const { getBin } = require('../lib/compile.js');
 const path = require('path');
 const fs = require('fs');
+let getBin;
+try {
+    ({ getBin } = require('../lib/compile.js'));
+} catch {
+    getBin = (name) => {
+        const binary = path.join(__dirname, '..', 'bin', `${name}.js`);
+        if (!fs.existsSync(binary)) throw new Error(`${name} helper is not installed`);
+        return binary;
+    };
+}
 
 const execAsync = promisify(exec);
 const WA_LIMIT = 60000;
