@@ -499,8 +499,18 @@ conn.ev.on('messages.update', async (updates) => {
 
 
 router.get('/health', (req, res) => res.json({ status: 'ok', bot: config.BOT_NAME, activeSessions: activeSockets.size, commands: events.commands.length }));
-router.get('/', (req, res) => res.sendFile(path.join(__dirname, 'pair.html')));
-router.get('/code', async (req, res) => { if (!req.query.number) return res.json({ error: 'Number required' }); await arslanPair(req.query.number, res); });
+router.get('/', (req, res) => {
+    res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
+    res.sendFile(path.join(__dirname, 'pair.html'));
+});
+router.get('/code', async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    const rawNumber = String(req.query.number || '').replace(/\D/g, '');
+    if (!/^\d{10,15}$/.test(rawNumber)) {
+        return res.status(400).json({ error: 'Enter a valid WhatsApp number with country code.' });
+    }
+    await arslanPair(rawNumber, res);
+});
 router.get('/status', async (req, res) => {
     const { number } = req.query;
     if (!number) {

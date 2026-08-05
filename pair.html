@@ -1,498 +1,167 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>👑 RedX Mini MD 👑</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-<style>
-/* ===============================
-   ORIGINAL STRUCTURE - UPGRADED VISUALS
-   =============================== */
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-:root {
-    --rgb-speed: 16s;
-    --glass-bg: rgba(0, 0, 0, 0.85);
-    --border-glow: rgba(255, 255, 255, 0.08);
-}
-
-body {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Poppins', sans-serif;
-    background: #0a0a0f;
-    color: #fff;
-    padding: 20px;
-    background-image: 
-        radial-gradient(ellipse at 20% 50%, rgba(120, 80, 255, 0.05) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 50%, rgba(255, 80, 120, 0.05) 0%, transparent 60%);
-}
-
-/* Card */
-.card {
-    width: 90%;
-    max-width: 420px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-radius: 28px;
-    padding: 32px 24px 28px;
-    text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 
-        0 30px 80px rgba(0, 0, 0, 0.8),
-        inset 0 1px 0 rgba(255, 255, 255, 0.04);
-    transition: all 0.3s;
-}
-
-/* Rainbow Text Animation */
-@keyframes rgbText {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 400% 50%; }
-}
-
-.rgb-text {
-    background: linear-gradient(90deg, 
-        #ff4d6d, #ff8a4d, #ffd93d, #6bcb77, #4d96ff, #9b59ff, #ff4d6d
-    );
-    background-size: 400% 100%;
-    animation: rgbText var(--rgb-speed) linear infinite;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* Titles */
-h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    margin-bottom: 2px;
-}
-
-h1:last-of-type {
-    font-size: 1.6rem;
-    margin-bottom: 4px;
-}
-
-/* Status */
-.status {
-    font-size: 0.75rem;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    opacity: 0.8;
-    margin: 6px 0 16px 0;
-    font-weight: 500;
-}
-
-/* ===== INPUT & BUTTON ===== */
-/* EXACT SAME STRUCTURE AS ORIGINAL */
-.input-wrap {
-    background: transparent;
-    border-radius: 16px;
-    padding: 0;
-    margin-bottom: 14px;
-}
-
-input {
-    width: 100%;
-    border: 2px solid rgba(255, 255, 255, 0.08);
-    outline: none;
-    padding: 16px;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.03);
-    color: #fff;
-    text-align: center;
-    font-size: 1.05rem;
-    font-family: 'Poppins', sans-serif;
-    transition: all 0.3s;
-    backdrop-filter: blur(10px);
-}
-
-input:focus {
-    border-color: rgba(255, 100, 200, 0.4);
-    box-shadow: 0 0 30px rgba(155, 89, 255, 0.08);
-    background: rgba(255, 255, 255, 0.05);
-}
-
-input::placeholder {
-    color: #555;
-}
-
-button {
-    width: 100%;
-    border: none;
-    border-radius: 16px;
-    padding: 16px;
-    font-size: 1.05rem;
-    font-weight: 600;
-    cursor: pointer;
-    background: linear-gradient(135deg, rgba(255, 77, 109, 0.15), rgba(155, 89, 255, 0.15));
-    color: #fff;
-    transition: all 0.3s;
-    border: 2px solid rgba(255, 255, 255, 0.08);
-    letter-spacing: 0.5px;
-    backdrop-filter: blur(10px);
-}
-
-button:hover {
-    background: linear-gradient(135deg, rgba(255, 77, 109, 0.25), rgba(155, 89, 255, 0.25));
-    border-color: rgba(255, 100, 200, 0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(155, 89, 255, 0.15);
-}
-
-button:active {
-    transform: translateY(0px);
-}
-
-/* ===== RESULT BOX ===== */
-#result {
-    margin-top: 20px;
-    min-height: 60px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-}
-
-.code-display {
-    padding: 14px 24px;
-    border-radius: 16px;
-    border: 2px dashed rgba(255, 255, 255, 0.08);
-    letter-spacing: 6px;
-    cursor: pointer;
-    background: rgba(255, 255, 255, 0.02);
-    font-size: 1.2rem;
-    font-weight: 600;
-    transition: all 0.3s;
-    width: 100%;
-    min-height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(10px);
-}
-
-.code-display:hover {
-    border-color: rgba(155, 89, 255, 0.3);
-    background: rgba(255, 255, 255, 0.04);
-}
-
-/* Loader */
-.loader {
-    width: 32px;
-    height: 32px;
-    border: 3px solid rgba(255, 255, 255, 0.05);
-    border-top: 3px solid #9b59ff;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Footer */
-footer {
-    margin-top: 22px;
-    font-size: 0.7rem;
-    color: #444;
-    letter-spacing: 0.5px;
-    border-top: 1px solid rgba(255, 255, 255, 0.04);
-    padding-top: 18px;
-}
-
-/* ===== RGB BORDER (FOR INPUT & BUTTON) ===== */
-@keyframes rgbMove {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 300% 50%; }
-}
-
-/* Input Box with RGB Border */
-.rgb-box {
-    padding: 3px;
-    border-radius: 18px;
-    background: linear-gradient(90deg, #ff4d6d, #ff8a4d, #ffd93d, #6bcb77, #4d96ff, #9b59ff, #ff4d6d);
-    background-size: 300% 100%;
-    animation: rgbMove 4s linear infinite;
-    width: 100%;
-    max-width: 340px;
-    margin: 0 auto 16px auto;
-    transition: all 0.3s;
-    box-shadow: 0 0 30px rgba(155, 89, 255, 0.05);
-}
-
-.rgb-box input {
-    width: 100%;
-    border: none;
-    outline: none;
-    padding: 16px;
-    border-radius: 16px;
-    background: #0a0a0f;
-    color: #fff;
-    text-align: center;
-    font-size: 1.05rem;
-    font-family: 'Poppins', sans-serif;
-}
-
-.rgb-box input::placeholder {
-    color: #555;
-}
-
-/* Button with RGB Border */
-.rgb-btn {
-    width: 100%;
-    max-width: 340px;
-    padding: 3px;
-    border-radius: 18px;
-    background: linear-gradient(90deg, #ff4d6d, #ff8a4d, #ffd93d, #6bcb77, #4d96ff, #9b59ff, #ff4d6d);
-    background-size: 300% 100%;
-    animation: rgbMove 4s linear infinite;
-    border: none;
-    cursor: pointer;
-    display: block;
-    margin: 0 auto;
-    transition: all 0.3s;
-}
-
-.btn-inner {
-    background: #0a0a0f;
-    color: #fff;
-    display: block;
-    padding: 14px;
-    border-radius: 16px;
-    font-weight: 700;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.3s;
-}
-
-.rgb-btn:hover {
-    transform: scale(1.02);
-    box-shadow: 0 10px 40px rgba(155, 89, 255, 0.2);
-}
-
-.rgb-btn:hover .btn-inner {
-    background: #111118;
-}
-
-/* Result Box with RGB Border */
-.result-box {
-    width: 100%;
-    max-width: 340px;
-    margin: 16px auto 0;
-    padding: 3px;
-    border-radius: 18px;
-    background: linear-gradient(90deg, #ff4d6d, #ff8a4d, #ffd93d, #6bcb77, #4d96ff, #9b59ff, #ff4d6d);
-    background-size: 300% 100%;
-    animation: rgbMove 5s linear infinite;
-    display: none;
-    box-shadow: 0 0 40px rgba(155, 89, 255, 0.05);
-}
-
-.result-inner {
-    background: #0a0a0f;
-    border-radius: 16px;
-    padding: 16px;
-    min-height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 1.1rem;
-    font-weight: 600;
-    text-align: center;
-}
-
-#codeBox {
-    letter-spacing: 4px;
-    color: #fff;
-    cursor: default;
-}
-
-/* Small decorative elements */
-.divider {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    margin: 4px 0 10px 0;
-    opacity: 0.3;
-}
-
-.divider span {
-    width: 30px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-}
-
-.badge-group {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 4px;
-}
-
-.badge {
-    padding: 4px 14px;
-    border-radius: 30px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    font-size: 0.6rem;
-    letter-spacing: 0.5px;
-    color: #888;
-    font-weight: 500;
-}
-
-.brand-logo {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin: 0 auto 10px auto;
-    display: block;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 20px rgba(155, 89, 255, 0.15);
-}
-
-.social-links {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 16px;
-}
-
-.social-links a {
-    text-decoration: none;
-    padding: 6px 12px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    font-size: 0.65rem;
-    color: #aaa;
-    transition: all 0.25s;
-}
-
-.social-links a:hover {
-    color: #fff;
-    border-color: rgba(155, 89, 255, 0.35);
-    background: rgba(155, 89, 255, 0.08);
-}
-
-@media (max-width: 480px) {
-    .card { padding: 24px 16px; }
-    h1 { font-size: 1.7rem; }
-    h1:last-of-type { font-size: 1.4rem; }
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0d14">
+  <meta name="description" content="Secure pairing portal for RedX Mini MD">
+  <title>RedX Mini MD — Pairing Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080a0f;
+      --panel: rgba(17, 22, 32, .82);
+      --panel-strong: #131925;
+      --text: #f5f7fb;
+      --muted: #9aa6b8;
+      --line: rgba(255,255,255,.11);
+      --accent: #9afcdb;
+      --accent-strong: #48d7ae;
+      --danger: #ff9caa;
+      --shadow: 0 32px 90px rgba(0,0,0,.48);
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh; margin: 0; padding: 28px;
+      display: grid; place-items: center; overflow-x: hidden;
+      background: var(--bg); color: var(--text);
+      font-family: Manrope, system-ui, sans-serif;
+    }
+    body::before, body::after {
+      content: ""; position: fixed; z-index: -1; border-radius: 50%;
+      filter: blur(8px); pointer-events: none;
+    }
+    body::before { width: 480px; height: 480px; left: -190px; top: -160px; background: rgba(63, 207, 166, .16); }
+    body::after { width: 540px; height: 540px; right: -240px; bottom: -260px; background: rgba(81, 103, 221, .15); }
+    .shell { width: min(100%, 1040px); display: grid; grid-template-columns: 1fr .9fr; border: 1px solid var(--line); border-radius: 28px; overflow: hidden; background: var(--panel); box-shadow: var(--shadow); backdrop-filter: blur(22px); }
+    .intro { min-height: 620px; padding: clamp(30px, 6vw, 72px); display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid var(--line); background: linear-gradient(145deg, rgba(154,252,219,.08), transparent 42%); }
+    .eyebrow { display: inline-flex; align-items: center; gap: 9px; color: var(--accent); font: 500 12px/1 DM Mono, monospace; letter-spacing: .13em; text-transform: uppercase; }
+    .eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 5px rgba(154,252,219,.12); }
+    h1 { max-width: 540px; margin: 28px 0 20px; font-size: clamp(42px, 6vw, 76px); line-height: .98; letter-spacing: -.065em; }
+    .lead { max-width: 470px; margin: 0; color: var(--muted); font-size: 16px; line-height: 1.75; }
+    .feature-list { display: grid; gap: 13px; margin: 52px 0 0; padding: 0; list-style: none; }
+    .feature-list li { display: flex; align-items: center; gap: 12px; color: #d8dfeb; font-size: 13px; }
+    .feature-list li::before { content: "↗"; display: grid; place-items: center; width: 23px; height: 23px; border: 1px solid rgba(154,252,219,.35); border-radius: 50%; color: var(--accent); font-size: 12px; }
+    .brand { display: flex; align-items: center; gap: 12px; color: var(--muted); font: 500 11px/1.4 DM Mono, monospace; letter-spacing: .08em; text-transform: uppercase; }
+    .mark { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid rgba(154,252,219,.4); border-radius: 12px; color: var(--accent); font-weight: 700; }
+    .form-panel { padding: clamp(28px, 5vw, 58px); background: rgba(10,13,20,.52); display: flex; flex-direction: column; justify-content: center; }
+    .form-panel h2 { margin: 0 0 10px; font-size: 25px; letter-spacing: -.04em; }
+    .form-panel > p { margin: 0 0 30px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+    label { display: block; margin-bottom: 9px; color: #dbe4ef; font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+    .input-wrap { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 13px; background: var(--panel-strong); transition: border-color .2s, box-shadow .2s; }
+    .input-wrap:focus-within { border-color: rgba(154,252,219,.72); box-shadow: 0 0 0 4px rgba(154,252,219,.09); }
+    .prefix { padding-left: 16px; color: var(--accent); font: 500 13px DM Mono, monospace; }
+    input { min-width: 0; width: 100%; border: 0; outline: 0; padding: 16px 14px; color: var(--text); background: transparent; font: 500 15px DM Mono, monospace; letter-spacing: .04em; }
+    input::placeholder { color: #647083; }
+    button { width: 100%; margin-top: 14px; padding: 16px 18px; border: 0; border-radius: 13px; color: #07110f; background: var(--accent); cursor: pointer; font: 800 12px Manrope, sans-serif; letter-spacing: .12em; text-transform: uppercase; transition: transform .2s, background .2s, box-shadow .2s; }
+    button:hover { background: #c4ffe9; box-shadow: 0 12px 28px rgba(72,215,174,.2); transform: translateY(-2px); }
+    button:active { transform: translateY(0); }
+    button:disabled { cursor: wait; opacity: .65; transform: none; }
+    .hint { margin: 12px 0 0; color: #738095; font-size: 11px; line-height: 1.6; }
+    .result { min-height: 91px; display: grid; place-items: center; margin-top: 26px; padding: 18px; border: 1px solid var(--line); border-radius: 15px; background: rgba(255,255,255,.025); text-align: center; }
+    .result[data-state="success"] { border-color: rgba(154,252,219,.45); background: rgba(154,252,219,.06); }
+    .result[data-state="error"] { border-color: rgba(255,156,170,.4); background: rgba(255,156,170,.05); }
+    .result-label { display: block; margin-bottom: 8px; color: var(--muted); font-size: 11px; }
+    .code { color: var(--accent); font: 500 25px DM Mono, monospace; letter-spacing: .22em; }
+    .status { color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .status.error { color: var(--danger); }
+    .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--line); }
+    .links a { color: #aab6c8; font-size: 11px; text-decoration: none; }
+    .links a:hover { color: var(--accent); }
+    @media (max-width: 760px) {
+      body { padding: 14px; }
+      .shell { grid-template-columns: 1fr; border-radius: 22px; }
+      .intro { min-height: auto; padding: 34px 26px 30px; border-right: 0; border-bottom: 1px solid var(--line); }
+      h1 { margin-top: 22px; font-size: clamp(42px, 14vw, 64px); }
+      .feature-list { margin-top: 32px; }
+      .brand { margin-top: 42px; }
+      .form-panel { padding: 30px 26px 34px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+  </style>
 </head>
 <body>
+  <main class="shell">
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <div class="eyebrow">RedX Mini MD / Secure access</div>
+        <h1 id="page-title">Pair your WhatsApp account.</h1>
+        <p class="lead">Connect your account to RedX Mini MD with a one-time pairing code. Your number is used only to start the secure WhatsApp session.</p>
+        <ul class="feature-list">
+          <li>Fast pairing with country-code validation</li>
+          <li>Session persistence with protected storage</li>
+          <li>Responsive portal for desktop and mobile</li>
+        </ul>
+      </div>
+      <div class="brand"><span class="mark">RX</span><span>RedX Mini MD<br>Session portal</span></div>
+    </section>
+    <section class="form-panel" aria-labelledby="form-title">
+      <h2 id="form-title">Generate pairing code</h2>
+      <p>Enter the full WhatsApp number, including the country code. Do not include a plus sign or spaces.</p>
+      <form id="pair-form" novalidate>
+        <label for="number">WhatsApp number</label>
+        <div class="input-wrap">
+          <span class="prefix" aria-hidden="true">+</span>
+          <input id="number" name="number" inputmode="numeric" autocomplete="tel" placeholder="923001234567" maxlength="15" required>
+        </div>
+        <button id="submit" type="submit">Generate code</button>
+        <p class="hint">A code request can take a few seconds while the session is prepared.</p>
+      </form>
+      <div id="result" class="result" role="status" aria-live="polite">
+        <span class="status">Your pairing code will appear here.</span>
+      </div>
+      <nav class="links" aria-label="Community links">
+        <a href="https://github.com/AbdulRehman19721986/REDXBOT-MD" target="_blank" rel="noreferrer">GitHub</a>
+        <a href="https://whatsapp.com/channel/0029VbCPnYf96H4SNehkev10" target="_blank" rel="noreferrer">WhatsApp channel</a>
+        <a href="https://t.me/TeamRedxhacker2" target="_blank" rel="noreferrer">Telegram</a>
+        <a href="https://youtube.com/@rootmindtech" target="_blank" rel="noreferrer">YouTube</a>
+      </nav>
+    </section>
+  </main>
+  <script>
+    const form = document.getElementById('pair-form');
+    const numberInput = document.getElementById('number');
+    const button = document.getElementById('submit');
+    const result = document.getElementById('result');
 
-<div class="card">
+    function showResult(message, state = '') {
+      result.dataset.state = state;
+      result.innerHTML = state === 'success'
+        ? '<div><span class="result-label">Your pairing code</span><strong class="code"></strong></div>'
+        : '<span class="status' + (state === 'error' ? ' error' : '') + '"></span>';
+      result.querySelector(state === 'success' ? '.code' : '.status').textContent = message;
+    }
 
-<img class="brand-logo" src="https://files.catbox.moe/s36b12.jpg" alt="RedX-Mini-MD" onerror="this.style.display='none'">
+    numberInput.addEventListener('input', () => {
+      numberInput.value = numberInput.value.replace(/\D/g, '').slice(0, 15);
+    });
 
-<h1 class="rgb-text">👑 RedX Mini MD 👑</h1>
-<h1 class="rgb-text">PAIR CODE</h1>
-
-<p class="status rgb-text">TYPE YOUR WHATSAPP NUMBER</p>
-
-<!-- Input with RGB Border -->
-<div class="rgb-box">
-    <input type="text" id="number" placeholder="923001234567">
-</div>
-
-<!-- Button with RGB Border -->
-<button class="rgb-btn" onclick="getCode()">
-    <span class="btn-inner">GET PAIR CODE</span>
-</button>
-
-<!-- Result Box with RGB Border -->
-<div class="result-box" id="borderBox">
-    <div class="result-inner" id="codeBox">----</div>
-</div>
-
-<!-- Footer Badges -->
-<div class="badge-group">
-    <span class="badge">🤖 WHATSAPP BOT</span>
-    <span class="badge">⚡ REDX-MINI-MD</span>
-    <span class="badge">✨ 2026</span>
-</div>
-
-<p class="status rgb-text" style="margin-top: 10px; font-size: 0.6rem;">MADE BY REDX-MINI-MD · MINI BOT EDITION</p>
-
-<div class="social-links">
-    <a href="https://github.com/AbdulRehman19721986/REDXBOT-MD" target="_blank">💻 GitHub</a>
-    <a href="https://whatsapp.com/channel/0029VbCPnYf96H4SNehkev10" target="_blank">📢 WA Channel</a>
-    <a href="https://chat.whatsapp.com/LhSmx2SeXX75r8I2bxsNDo" target="_blank">👥 WA Group</a>
-    <a href="https://t.me/TeamRedxhacker2" target="_blank">✈️ Telegram</a>
-    <a href="https://youtube.com/@rootmindtech" target="_blank">▶️ YouTube</a>
-</div>
-
-</div>
-
-<script>
-// ===== EXACT ORIGINAL FUNCTIONALITY - NO CHANGES =====
-async function getCode() {
-    const num = document.getElementById("number").value.replace(/[^0-9]/g, '');
-    const codeBox = document.getElementById("codeBox");
-    const borderBox = document.getElementById("borderBox");
-
-    // Agar number khali hai
-    if (!num) {
-        borderBox.style.display = "block";
-        codeBox.style.letterSpacing = "normal";
-        codeBox.style.color = "#ff4d6d";
-        codeBox.innerText = "APNA WHATSAPP NUMBER LIKHE";
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const number = numberInput.value.trim();
+      if (!/^\d{10,15}$/.test(number)) {
+        showResult('Enter a valid number with country code.', 'error');
+        numberInput.focus();
         return;
-    }
-
-    // Loading State
-    borderBox.style.display = "block";
-    codeBox.style.letterSpacing = "normal";
-    codeBox.style.color = "#9b59ff";
-    codeBox.innerText = "CONNECTING.....";
-
-    try {
-        const res = await fetch(`/code?number=${num}`);
-        const data = await res.json();
-        
-        if (data.code) {
-            codeBox.style.letterSpacing = "4px";
-            codeBox.style.color = "#fff";
-            codeBox.innerText = data.code;
-        } else {
-            codeBox.style.color = "#ff4d6d";
-            codeBox.innerText = "SERVER FULL";
-        }
-    } catch (e) {
-        codeBox.style.color = "#ff4d6d";
-        codeBox.innerText = "SERVER IS FULL";
-    }
-}
-
-// Enter key support
-document.getElementById("number").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
-        e.preventDefault();
-        getCode();
-    }
-});
-</script>
-
+      }
+      button.disabled = true;
+      button.textContent = 'Preparing secure session';
+      showResult('Connecting to WhatsApp…');
+      try {
+        const response = await fetch('/code?number=' + encodeURIComponent(number), { headers: { Accept: 'application/json' } });
+        const data = await response.json();
+        if (!response.ok || !data.code) throw new Error(data.message || data.error || 'Unable to generate a pairing code.');
+        showResult(data.code, 'success');
+      } catch (error) {
+        showResult(error.message || 'The server is unavailable. Please try again.', 'error');
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Generate code';
+      }
+    });
+  </script>
 </body>
 </html>

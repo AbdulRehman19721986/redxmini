@@ -19,6 +19,31 @@ if (fs.existsSync('.env')) {
     dotenv.config({ path: '.env' });
 }
 
+function resolveMongoUri() {
+    const configured = String(process.env.MONGODB_URI || '').trim();
+    const username = String(process.env.MONGODB_USERNAME || '').trim();
+    const password = String(process.env.MONGODB_PASSWORD || '').trim();
+
+    if (!configured) return '';
+    if (!username || !password || configured.includes('@')) return configured;
+
+    // The supplied Atlas URI is a host-only URI. Add credentials from secrets
+    // without ever writing them into source files or the downloadable package.
+    const match = configured.match(/^(mongodb(?:\+srv)?:\/\/)([^/]+)(\/.*)?$/i);
+    if (!match) return configured;
+    const host = match[2];
+    const suffix = match[3] || '/?retryWrites=true&w=majority';
+    return `${match[1]}${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}${suffix}`;
+}
+
+const resolvedMongoUri = resolveMongoUri();
+
+// Keep both names supported because some older plugins use MONGO_URL while
+// the main session store uses MONGODB_URI.
+if (!process.env.MONGO_URL && resolvedMongoUri) {
+    process.env.MONGO_URL = resolvedMongoUri;
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 //  📦 CONFIGURATION EXPORT
 // ────────────────────────────────────────────────────────────────────────────
@@ -40,7 +65,7 @@ module.exports = {
      * @type {string}
      * @default "mongodb+srv://..."
      */
-    MONGODB_URI: process.env.MONGODB_URI || 'mongodb+srv://offarslan_db_user:arslanmd@cluster0.xrqkzwg.mongodb.net/?appName=Cluster0',
+    MONGODB_URI: resolvedMongoUri,
 
     // ═══════════════════════════════════════════════════════════════════════
     //  🤖 BOT IDENTITY
@@ -58,7 +83,10 @@ module.exports = {
      * @type {string}
      * @default "+923009842133"
      */
-    OWNER_NUMBER: process.env.OWNER_NUMBER || '+923009842133',
+    OWNER_NUMBER: (process.env.OWNER_NUMBERS || process.env.OWNER_NUMBER || '923009842133')
+        .split(',')
+        .map(number => number.replace(/\D/g, ''))
+        .filter(Boolean),
     
     /** 
      * @description Display name of the bot
@@ -85,7 +113,6 @@ module.exports = {
      * - inbox   : Only responds in DMs
      */
     WORK_TYPE: process.env.WORK_TYPE || "public",
-    OWNER_NUMBER: (process.env.OWNER_NUMBERS || '923009842133').split(','),
     ANTIDELETE: 'true',  // Global antidelete enable/disable
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -259,7 +286,7 @@ module.exports = {
      * @type {string}
      * @default "7214172448:..."
      */
-    TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN || '7214172448:AAHGqSgaw-zGVPZWvl8msDOVDhln-9kExas',
+    TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN || '',
     
     /** 
      * @description Telegram chat ID for sending notifications

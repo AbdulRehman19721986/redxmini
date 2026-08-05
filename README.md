@@ -60,7 +60,7 @@ Everything else — 500+ legitimate commands — made it in.
 git clone <your-repo-url>
 cd redx-mini-md
 npm install
-cp .env.example .env   # fill in MONGODB_URI at minimum
+cp .env.example .env   # or configure the same values in your host's secrets
 npm start
 ```
 
@@ -74,7 +74,7 @@ and grab your pairing code from the WhatsApp app under
 2. On [Render](https://render.com), create a **New Web Service** from the repo.
 3. Build command: `npm install` — Start command: `npm start`.
 4. Add environment variables (see **Environment variables** below) — at
-   minimum set `MONGODB_URI`.
+   minimum set `MONGODB_URI`, `MONGODB_USERNAME`, and `MONGODB_PASSWORD`.
 5. Once deployed, open the Render URL — that's your pairing page.
 
 > **Puppeteer note:** the `.topdf`-style HTML→PDF command tries Puppeteer

@@ -73,7 +73,7 @@ module.exports = {
     updateZipUrl:   'https://github.com/AbdulRehman19721986/REDXBOT-MD/archive/refs/heads/main.zip',
 
     // APIs
-    giphyApiKey:    process.env.GIPHY_API_KEY   || 'qnl7ssQChTdPjsKta2Ax2LMaGXz303tq',
+    giphyApiKey:    process.env.GIPHY_API_KEY   || '',
     openWeatherKey: process.env.OPENWEATHER_KEY || '',
 
     platform,
