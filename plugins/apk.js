@@ -1,5 +1,4 @@
 const { cmd } = require('../arslan');
-const config = require('../config');
 const axios = require('axios');
 
 cmd({
@@ -31,7 +30,7 @@ cmd({
 *┃ 👑 VER :❯ ${app.file.vername}*
 *╰━━━━━━━━━━━━━━━┈⊷*
 
-*Powered by ${config.BOT_NAME}*`;
+*👑 BY :❯ REDX-MINI-MD 👑*`;
 
     await conn.sendMessage(from, { image: { url: app.icon }, caption }, { quoted: mek });
 

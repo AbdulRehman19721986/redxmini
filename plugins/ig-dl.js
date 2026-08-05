@@ -36,7 +36,7 @@ cmd({
                 caption: `‎*_ɪɴsᴛᴀɢʀᴀᴍ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ_*
 
 ‎╔ஜ۩▒█ *ᴀʀꜱʟᴀɴ X ᴍᴅ* █▒۩ஜ╗
-‎*|* 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 *ᴀʀꜱʟᴀɴ-ᴍᴅ* 
+‎*|* 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 *ʀᴇᴅx-ᴍɪɴɪ-ᴍᴅ* 
 ‎*╰━━━━━━━━━━━━━━━━━━⊷*
 ‎`
             }, { quoted: fakevCard });
@@ -93,7 +93,7 @@ cmd({
       caption: `*_ɪɴsᴛᴀɢʀᴀᴍ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ_*
 
 ‎‎╔ஜ۩▒█ *ᴀʀꜱʟᴀɴ X ᴍᴅ* █▒۩ஜ╗
-‎*|* 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 *ᴀʀꜱʟᴀɴ-ᴍᴅ* 
+‎*|* 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 *ʀᴇᴅx-ᴍɪɴɪ-ᴍᴅ* 
 ‎*╰━━━━━━━━━━━━━━━━━━⊷*`
     }, { quoted: fakevCard });
 
@@ -144,7 +144,7 @@ cmd({
 
     await conn.sendMessage(from, {
       video: { url: videoUrl },
-      caption: `📥 *Instagram Reel Downloader*\n👤 *Author:* ${author}\n💬 *Caption:* ${caption}\n❤️ *Likes:* ${likes} | 💭 *Comments:* ${comments}\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ☬༒ᴀʀꜱʟᴀɴ-ᴍᴅ༒☬`
+      caption: `📥 *Instagram Reel Downloader*\n👤 *Author:* ${author}\n💬 *Caption:* ${caption}\n❤️ *Likes:* ${likes} | 💭 *Comments:* ${comments}\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ☬༒ʀᴇᴅx-ᴍɪɴɪ-ᴍᴅ༒☬`
     }, { quoted: fakevCard });
 
     await conn.sendMessage(from, { react: { text: '✅', key: m.key } });
@@ -180,7 +180,7 @@ async (conn, mek, m, { from, args, q, reply }) => {
 `*_ɪɴsᴛᴀɢʀᴀᴍ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ_*
 
 ‎╔ஜ۩▒█ *ᴀʀꜱʟᴀɴ X ᴍᴅ* █▒۩ஜ╗
-‎*|* 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 *ᴀʀꜱʟᴀɴ-ᴍᴅ* 
+‎*|* 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 *ʀᴇᴅx-ᴍɪɴɪ-ᴍᴅ* 
 ‎*╰━━━━━━━━━━━━━━━━━━⊷*`;
         
         await conn.sendMessage(from, {

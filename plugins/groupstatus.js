@@ -116,7 +116,7 @@ ${caption || "No Caption"}`
         console.log("GROUPSTATUS ERROR:", err);
 
         return reply(
-`❌ REDX MINI-MD STATUS ERROR
+`❌ REDX-MINI-MD STATUS ERROR
 
 ${err.message}`
         );

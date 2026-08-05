@@ -68,7 +68,7 @@ const title = res.data.result.metadata.title || vid.title
 await conn.sendMessage(from,{
 video:{url:videoUrl},
 mimetype:"video/mp4",
-caption:`🎬 *${title}*\n\n> © ᴀʀꜱʟᴀɴ-ᴍᴅ`
+caption:`🎬 *${title}*\n\n> © ʀᴇᴅx-ᴍɪɴɪ-ᴍᴅ`
 },{quoted:fakevCard})
 
 }catch(err){

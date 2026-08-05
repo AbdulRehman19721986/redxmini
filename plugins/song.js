@@ -59,13 +59,13 @@ fileName: `${meta.title || "song"}.mp3`,
 caption:
 `🎵 *${meta.title || "Unknown Title"}*\n` +
 `🎚️ Quality: ${quality}\n\n` +
-`> © ${require('../config').BOT_NAME}`,
+`> © RedX-Mini-MD`,
 contextInfo: {
 externalAdReply: {
 title: meta.title
 ? meta.title.substring(0, 40)
 : "YouTube Song",
-body: "▶︎ •၊၊||၊|။||||။‌‌‌‌‌၊|• ★彡ᴀʀꜱʟᴀɴ-ᴍᴅ-ʙᴇᴀᴛꜱ彡★",
+body: "▶︎ •၊၊||၊|။||||။‌‌‌‌‌၊|• ★彡ʀᴇᴅx-ᴍɪɴɪ-ᴍᴅ-ʙᴇᴀᴛꜱ彡★",
 thumbnailUrl: video.thumbnail,
 sourceUrl: video.url,
 mediaType: 1,
@@ -132,7 +132,7 @@ cmd({
       'video': {
         'url': _0x5f2691
       },
-      'caption': "*❀༒★[ᴀʀꜱʟᴀɴ-ᴍᴅ]★༒❀*"
+      'caption': "*❀༒★[ʀᴇᴅx-ᴍɪɴɪ-ᴍᴅ]★༒❀*"
     }, {
       'quoted': fakevCard
     });

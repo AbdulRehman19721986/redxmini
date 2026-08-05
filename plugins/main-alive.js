@@ -26,13 +26,13 @@ async (conn, mek, m, { from, sender, reply }) => {
         *I AM ALIVE NOW 🤗♥️*
 *┏────〘 INFO 〙───⊷*
 *┃👑 MODE :❯ ${config.MODE || 'private'}*
-*┃👑 USER :❯ ${config.OWNER_NAME || 'Abdul Rehman Rajpoot'}*
+*┃👑 USER :❯ ${config.OWNER_NAME || 'REDX-MINI-MD'}*
 *┃👑 PREFIX :❯ ❮ ${config.PREFIX || '.'} ❯*
 *┃👑 VERSION :❯ 1.0.0*
 *┃👑 TOTAL CMNDS :❯ ❮ ${totalCmds} ❯*
 *┃👑 UPTIME :❯ ${uptime()}*
 *┗──────────────⊷*
-*REDX MINI-MD WHATSAPP BOT*`;
+*👑 REDX-MINI-MD WHATSAPP BOT 👑*`;
 
         await conn.sendMessage(from, { 
             text: status,

@@ -1,5 +1,4 @@
 const { cmd, commands } = require("../arslan");
-const config = require("../config");
 const moment = require("moment-timezone");
 const { fakevCard } = require('../lib/fakevCard');
 
@@ -33,19 +32,19 @@ cmd({
         const date = moment().tz("Africa/Kampala").format("dddd, MMMM Do YYYY");
 
         const caption = `
-╭━━━《 *ᴀʀꜱʟᴀɴ-ᴍᴅ* 》━━━┈⊷
+╭━━━《 *ʀᴇᴅx-ᴍɪɴɪ-ᴍᴅ* 》━━━┈⊷
 ┃ ✦╭─────────────┈⊷
 ┃ ✦│▸ Total Commands : *${totalCommands}*
 ┃ ✦│▸ Time           : ${time}
 ┃ ✦│▸ Date           : ${date}
-┃ ✦│▸ Platform       : RedX Mini-MD
+┃ ✦│▸ Platform       : arslanmd.xo.je
 ┃ ✦╰─────────────┈⊷
 ╰━━━━━━━━━━━━┈⊷
 ${menuText}
 `.trim();
 
         await conn.sendMessage(m.chat, {
-            image: { url: config.IMAGE_PATH },
+            image: { url: "https://files.catbox.moe/prkkzj.png" },
             caption,
             contextInfo: {
                 forwardingScore: 999,
