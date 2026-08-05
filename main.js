@@ -13,7 +13,6 @@ const {
 const { arslanmd } = require('./lib/system');
 const config = require('./config');
 const events = require('./arslan');
-const { loadPlugins } = require('./lib/plugin-loader');
 const { sms } = require('./lib/msg');
 const {
     connectdb,
@@ -103,14 +102,20 @@ function getConnectionStatus(number) {
     };
 }
 
-function redxLog(message, type = 'info') {
+function arslanLog(message, type = 'info') {
     const icons = { info: '📝', success: '✅', error: '❌', warning: '⚠️', debug: '🐛' };
-    console.log(`${icons[type] || '📝'} [REDX-MINI-MD] ${new Date().toISOString()}: ${message}`);
+    console.log(`${icons[type] || '📝'} [REDX-MINI-MD-MINI] ${new Date().toISOString()}: ${message}`);
 }
 
-// Load every JavaScript plugin through one predictable entry point.
-const pluginResult = loadPlugins(path.join(__dirname, 'plugins'), redxLog);
-redxLog(`Loaded ${pluginResult.loaded.length} of ${pluginResult.total} plugins.`, 'info');
+// Load Plugins — supports BOTH the native cmd()-style plugins and the
+// bridged {command, handler} / bundle-array style plugins. See
+// lib/pluginBridge.js for how the two formats are unified.
+const { loadPlugins } = require('./lib/pluginBridge');
+const pluginsDir = path.join(__dirname, 'plugins');
+if (!fs.existsSync(pluginsDir)) fs.mkdirSync(pluginsDir, { recursive: true });
+const pluginStats = loadPlugins(pluginsDir);
+arslanLog(`Plugins loaded from ${pluginStats.totalFiles} files → native: ${pluginStats.native}, bridged: ${pluginStats.bridged}, total commands: ${events.commands.length}` + (pluginStats.failed ? `, FAILED: ${pluginStats.failed}` : ''), pluginStats.failed ? 'warning' : 'success');
+if (pluginStats.failed) pluginStats.failedFiles.forEach(f => arslanLog(`  ↳ ${f}`, 'error'));
 
 
 async function setupCallHandlers(socket, number) {
@@ -124,10 +129,10 @@ async function setupCallHandlers(socket, number) {
                 await socket.sendMessage(call.from, {
                     text: userConfig.REJECT_MSG || config.REJECT_MSG
                 });
-                redxLog(`Auto-rejected call for ${number} from ${call.from}`, 'info');
+                arslanLog(`Auto-rejected call for ${number} from ${call.from}`, 'info');
             }
         } catch (err) {
-            redxLog(`Anti-call error for ${number}: ${err.message}`, 'error');
+            arslanLog(`Anti-call error for ${number}: ${err.message}`, 'error');
         }
     });
 }
@@ -141,10 +146,10 @@ function setupAutoRestart(socket, number) {
         if (connection === 'close') {
             const statusCode = lastDisconnect && lastDisconnect.error && lastDisconnect.error.output && lastDisconnect.error.output.statusCode;
             const errorMessage = lastDisconnect && lastDisconnect.error && lastDisconnect.error.message;
-            redxLog(`Connection closed for ${number}: ${statusCode} - ${errorMessage}`, 'warning');
+            arslanLog(`Connection closed for ${number}: ${statusCode} - ${errorMessage}`, 'warning');
 
             if (statusCode === 401 || (errorMessage && errorMessage.includes('401'))) {
-                redxLog(`Manual unlink detected for ${number}, cleaning up...`, 'warning');
+                arslanLog(`Manual unlink detected for ${number}, cleaning up...`, 'warning');
                 const sanitizedNumber = number.replace(/[^0-9]/g, '');
                 activeSockets.delete(sanitizedNumber);
                 socketCreationTime.delete(sanitizedNumber);
@@ -155,11 +160,11 @@ function setupAutoRestart(socket, number) {
             }
 
             const isNormalError = statusCode === 408 || (errorMessage && errorMessage.includes('QR refs attempts ended'));
-            if (isNormalError) { redxLog(`Normal closure for ${number}, no restart needed.`, 'info'); return; }
+            if (isNormalError) { arslanLog(`Normal closure for ${number}, no restart needed.`, 'info'); return; }
 
             if (restartAttempts < maxRestartAttempts) {
                 restartAttempts++;
-                redxLog(`Reconnecting ${number} (${restartAttempts}/${maxRestartAttempts}) in 10s...`, 'warning');
+                arslanLog(`Reconnecting ${number} (${restartAttempts}/${maxRestartAttempts}) in 10s...`, 'warning');
                 const sanitizedNumber = number.replace(/[^0-9]/g, '');
                 activeSockets.delete(sanitizedNumber);
                 socketCreationTime.delete(sanitizedNumber);
@@ -168,9 +173,9 @@ function setupAutoRestart(socket, number) {
                 try {
                     const mockRes = { headersSent: false, send: () => {}, status: () => mockRes, setHeader: () => {}, json: () => {} };
                     await arslanPair(number, mockRes);
-                } catch (e) { redxLog(`Reconnection failed for ${number}: ${e.message}`, 'error'); }
+                } catch (e) { arslanLog(`Reconnection failed for ${number}: ${e.message}`, 'error'); }
             } else {
-                redxLog(`Max restart attempts reached for ${number}.`, 'error');
+                arslanLog(`Max restart attempts reached for ${number}.`, 'error');
             }
         }
         if (connection === 'open') { restartAttempts = 0; }
@@ -204,16 +209,16 @@ async function arslanPair(number, res = null) {
         const existingSession = await getSessionFromMongoDB(sanitizedNumber);
 
         if (!existingSession) {
-            redxLog(`No MongoDB session for ${sanitizedNumber} — new pairing required`, 'info');
+            arslanLog(`No MongoDB session for ${sanitizedNumber} — new pairing required`, 'info');
             if (fs.existsSync(sessionPath)) {
                 await fs.remove(sessionPath);
-                redxLog(`Cleaned leftover local session for ${sanitizedNumber}`, 'info');
+                arslanLog(`Cleaned leftover local session for ${sanitizedNumber}`, 'info');
             }
         } else {
             // Session exists - restore from MongoDB
             fs.ensureDirSync(sessionPath);
             fs.writeFileSync(path.join(sessionPath, 'creds.json'), JSON.stringify(existingSession, null, 2));
-            redxLog(`🔄 Restored existing session for ${sanitizedNumber}`, 'success');
+            arslanLog(`🔄 Restored existing session from MongoDB for ${sanitizedNumber}`, 'success');
         }
 
         const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
@@ -239,7 +244,7 @@ async function arslanPair(number, res = null) {
             browser: ['Mac OS', 'Safari', '10.15.7'],
             getMessage: async (key) => {
                 const msg = await arslanStore.loadMessage(key.remoteJid, key.id);
-                return msg && msg.message ? msg.message : { conversation: config.BOT_NAME };
+                return msg && msg.message ? msg.message : { conversation: 'REDX-MINI-MD' };
             }
         });
 
@@ -276,23 +281,23 @@ async function arslanPair(number, res = null) {
 
         // Pairing Code
         if (!conn.authState.creds.registered) {
-            redxLog(`🔐 Starting new pairing process for ${sanitizedNumber}`, 'info');
+            arslanLog(`🔐 Starting NEW pairing process for ${sanitizedNumber}`, 'info');
             try {
                 await delay(1500);
                 const code = await conn.requestPairingCode(sanitizedNumber);
-                redxLog(`Pairing Code for ${sanitizedNumber}: ${code}`, 'success');
+                arslanLog(`Pairing Code for ${sanitizedNumber}: ${code}`, 'success');
                 if (res && !res.headersSent) {
                     res.send({ code, status: 'new_pairing' });
                 }
             } catch (error) {
-                redxLog(`Failed to request pairing code: ${error.message}`, 'error');
+                arslanLog(`Failed to request pairing code: ${error.message}`, 'error');
                 if (res && !res.headersSent) {
                     res.status(500).send({ error: 'Failed to get pairing code', status: 'error', message: error.message });
                 }
                 throw error;
             }
         } else {
-            redxLog(`Using existing session for ${sanitizedNumber}`, 'success');
+            arslanLog(`✅ Using existing session for ${sanitizedNumber}`, 'success');
             if (res && !res.headersSent) {
                 res.json({ status: 'reconnecting', message: 'Reconnecting with existing session' });
             }
@@ -307,7 +312,7 @@ async function arslanPair(number, res = null) {
             const isNewSession = !existingSessionCheck;
             await saveSessionToMongoDB(sanitizedNumber, creds);
             if (isNewSession) {
-                redxLog(`New user ${sanitizedNumber} successfully registered!`, 'success');
+                arslanLog(`🎉 NEW user ${sanitizedNumber} successfully registered!`, 'success');
             }
         });
 
@@ -330,19 +335,19 @@ conn.ev.on('messages.update', async (updates) => {
             const { connection, lastDisconnect } = update;
             if (connection === 'open') {
                 await arslanmd(conn);
-                redxLog(`Connected: ${sanitizedNumber}`, 'success');
+                arslanLog(`Connected: ${sanitizedNumber}`, 'success');
                 const userJid = jidNormalizedUser(conn.user.id);
                 await addNumberToMongoDB(sanitizedNumber);
                 if (!existingSession) {
                     await conn.sendMessage(userJid, {
                         image: { url: config.IMAGE_PATH },
-                        caption: `\n╭────────────────────◇\n│✦ *REDX MINI-MD — CONNECTED*\n│✦ Type *${prefix}menu* to see all commands\n│✦ Prefix 『 ${prefix} 』  Mode 〔${mode}〕\n╰────────────────────○\n*${config.BOT_FOOTER}*`
+                        caption: `\n╭────────────────────◇\n│✦ *REDX-MINI-MD — CONNECTED* 🔥\n│✦ Type *${prefix}menu* to see all commands 💫\n│✦ Prefix 『 ${prefix} 』  Mode 〔${mode}〕\n╰────────────────────○\n*© Powered by REDX-MINI-MD*`
                     });
                 }
             }
             if (connection === 'close') {
                 const reason = lastDisconnect && lastDisconnect.error && lastDisconnect.error.output && lastDisconnect.error.output.statusCode;
-                if (reason === DisconnectReason.loggedOut) redxLog(`Session logged out.`, 'error');
+                if (reason === DisconnectReason.loggedOut) arslanLog(`Session logged out.`, 'error');
             }
         });
 
@@ -447,9 +452,9 @@ conn.ev.on('messages.update', async (updates) => {
                 const myquoted = {
                     key: { remoteJid: 'status@broadcast', participant: '13135550002@s.whatsapp.net', fromMe: false, id: createSerial(16).toUpperCase() },
                     message: { contactMessage: {
-                        displayName: config.BOT_NAME,
-                        vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:${config.BOT_NAME}\nORG:${config.BOT_NAME};\nTEL;type=CELL;type=VOICE;waid=${config.OWNER_NUMBER[0]}:${config.OWNER_NUMBER[0]}\nEND:VCARD`,
-                        contextInfo: { stanzaId: createSerial(16).toUpperCase(), participant: '0@s.whatsapp.net', quotedMessage: { conversation: config.BOT_FOOTER } }
+                        displayName: '© REDX-MINI-MD',
+                        vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:REDX-MINI-MD BOY\nORG:REDX-MINI-MD BOY;\nTEL;type=CELL;type=VOICE;waid=13135550002:13135550002\nEND:VCARD`,
+                        contextInfo: { stanzaId: createSerial(16).toUpperCase(), participant: '0@s.whatsapp.net', quotedMessage: { conversation: '© REDX-MINI-MD' } }
                     }},
                     messageTimestamp: Math.floor(Date.now() / 1000),
                     status: 1, verifiedBizName: 'Meta'
@@ -466,7 +471,7 @@ conn.ev.on('messages.update', async (updates) => {
                         if (cmd.react) conn.sendMessage(from, { react: { text: cmd.react, key: mek.key } });
                         try {
                             cmd.function(conn, mek, m, { from, quoted: mek, body, isCmd, command, args, q, text, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, isCreator, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply, config, myquoted });
-                        } catch (e) { redxLog(`PLUGIN ERROR [${command}]: ${e.message}`, 'error'); }
+                        } catch (e) { arslanLog(`PLUGIN ERROR [${command}]: ${e.message}`, 'error'); }
                     }
                 }
 
@@ -481,11 +486,11 @@ conn.ev.on('messages.update', async (updates) => {
                     else if (evCmd.on === 'sticker' && mek.type === 'stickerMessage') evCmd.function(conn, mek, m, ctx);
                 });
 
-            } catch (e) { redxLog(`Message handler error: ${e.message}`, 'error'); }
+            } catch (e) { arslanLog(`Message handler error: ${e.message}`, 'error'); }
         });
 
     } catch (err) {
-        redxLog(`RedX Mini-MD pair error: ${err.message}`, 'error');
+        arslanLog(`REDX-MINI-MD-MINI Pair error: ${err.message}`, 'error');
         if (res && !res.headersSent) return res.json({ error: 'Internal Server Error', details: err.message });
     } finally {
         if (connectionLockKey) global[connectionLockKey] = false;
@@ -493,11 +498,9 @@ conn.ev.on('messages.update', async (updates) => {
 }
 
 
+router.get('/health', (req, res) => res.json({ status: 'ok', bot: config.BOT_NAME, activeSessions: activeSockets.size, commands: events.commands.length }));
 router.get('/', (req, res) => res.sendFile(path.join(__dirname, 'pair.html')));
-router.get('/code', async (req, res) => {
-    if (!req.query.number) return res.status(400).json({ error: 'Number required' });
-    await arslanPair(String(req.query.number), res);
-});
+router.get('/code', async (req, res) => { if (!req.query.number) return res.json({ error: 'Number required' }); await arslanPair(req.query.number, res); });
 router.get('/status', async (req, res) => {
     const { number } = req.query;
     if (!number) {
@@ -521,7 +524,7 @@ router.get('/disconnect', async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Failed to disconnect' }); }
 });
 router.get('/active', (req, res) => res.json({ count: activeSockets.size, numbers: Array.from(activeSockets.keys()) }));
-router.get('/ping', (req, res) => res.json({ status: 'active', message: 'RedX Mini-MD is running', activeSessions: activeSockets.size, plugins: events.commands.length }));
+router.get('/ping', (req, res) => res.json({ status: 'active', message: 'RedX-Mini-MD is running 🔥', activeSessions: activeSockets.size }));
 router.get('/connect-all', async (req, res) => {
     try {
         const numbers = await getAllNumbersFromMongoDB();
@@ -547,7 +550,7 @@ router.get('/update-config', async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     await saveOTPToMongoDB(n, otp, newConfig);
     try {
-        await socket.sendMessage(jidNormalizedUser(socket.user.id), { text: `*REDX MINI-MD — CONFIG UPDATE*\n\nOTP: *${otp}*\nValid 5 minutes` });
+        await socket.sendMessage(jidNormalizedUser(socket.user.id), { text: `*🔐 REDX-MINI-MD — CONFIG UPDATE*\n\nOTP: *${otp}*\nValid 5 minutes` });
         res.json({ status: 'otp_sent' });
     } catch (e) { res.status(500).json({ error: 'Failed to send OTP' }); }
 });
@@ -577,9 +580,9 @@ router.get('/stats', async (req, res) => {
 
 async function autoReconnectFromMongoDB() {
     try {
-        redxLog('Attempting auto-reconnect from MongoDB...', 'info');
+        arslanLog('Attempting auto-reconnect from MongoDB...', 'info');
         const numbers = await getAllNumbersFromMongoDB();
-        if (!numbers.length) { redxLog('No numbers in MongoDB', 'info'); return; }
+        if (!numbers.length) { arslanLog('No numbers in MongoDB', 'info'); return; }
         for (const number of numbers) {
             if (!activeSockets.has(number)) {
                 const mockRes = { headersSent: false, json: () => {}, status: () => mockRes };
@@ -587,8 +590,8 @@ async function autoReconnectFromMongoDB() {
                 await delay(2000);
             }
         }
-        redxLog('Auto-reconnect completed', 'success');
-    } catch (e) { redxLog(`autoReconnectFromMongoDB error: ${e.message}`, 'error'); }
+        arslanLog('Auto-reconnect completed', 'success');
+    } catch (e) { arslanLog(`autoReconnectFromMongoDB error: ${e.message}`, 'error'); }
 }
 
 setTimeout(() => { autoReconnectFromMongoDB(); }, 3000);
@@ -605,7 +608,7 @@ process.on('exit', () => {
 });
 
 process.on('uncaughtException', (err) => {
-    redxLog(`Uncaught exception: ${err.message}`, 'error');
+    arslanLog(`Uncaught exception: ${err.message}`, 'error');
 });
 
 module.exports = router;

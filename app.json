@@ -1,9 +1,9 @@
 {
-  "name": "RedX Mini-MD Pair",
-  "description": "Official RedX Mini-MD WhatsApp session pairing service",
+  "name": "♥️REDX MINI MD PAIR♥️",
+  "description": "SESSION ID GENERATOR FOR WHATSAPP BOTS",
   "logo": "https://files.catbox.moe/s36b12.jpg",
   "repository": "https://github.com/AbdulRehman19721986/REDXBOT-MD",
-  "keywords": ["RedX", "WhatsApp", "Mini-MD"],
+  "keywords": ["whatsapp-bot", "baileys", "redx-mini-md"],
   "success_url": "/", 
   "buildpacks": [
     { "url": "https://github.com/heroku/heroku-buildpack-nodejs#latest" }
@@ -11,7 +11,7 @@
   "env": {      
     "MESSAGE": {
       "description": "Msg Attached With Session ID",
-      "value": "Powered by RedX Mini-MD",
+      "value": "🔰 BY || REDX-MINI-MD OFFICIAL 🔰",
       "required": false 
     }
   }

@@ -6,7 +6,7 @@
 // ██║  ██║██║  ██║███████║███████╗██║  ██║██║  ████║     ██║ ╚═╝ ██║██████╔╝
 // ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝   ╚═══╝    ╚═╝     ╚═╝╚═════╝ 
 // ═══════════════════════════════════════════════════════════════════════════
-//                    REDX MINI-MD - BOT CONFIGURATION
+//                    REDX MINI MD - BOT CONFIGURATION
 // ═══════════════════════════════════════════════════════════════════════════
 
 const fs = require('fs');
@@ -33,15 +33,14 @@ module.exports = {
      * @type {string}
      * @default "MINI BOT"
      */
-    SESSION_ID: process.env.SESSION_ID || "redx-mini-md",
+    SESSION_ID: process.env.SESSION_ID || "MINI BOT",
     
     /** 
      * @description MongoDB Atlas connection string
      * @type {string}
      * @default "mongodb+srv://..."
      */
-    // Required in production. Never commit a database URL here.
-    MONGODB_URI: process.env.MONGODB_URI,
+    MONGODB_URI: process.env.MONGODB_URI || 'mongodb+srv://offarslan_db_user:arslanmd@cluster0.xrqkzwg.mongodb.net/?appName=Cluster0',
 
     // ═══════════════════════════════════════════════════════════════════════
     //  🤖 BOT IDENTITY
@@ -57,27 +56,23 @@ module.exports = {
     /** 
      * @description Owner's WhatsApp number with country code
      * @type {string}
-     * @default "923009842133"
+     * @default "+923009842133"
      */
-    OWNER_NUMBER: String(process.env.OWNER_NUMBER || '923009842133')
-        .split(',')
-        .map((number) => number.replace(/[^0-9]/g, ''))
-        .filter(Boolean),
+    OWNER_NUMBER: process.env.OWNER_NUMBER || '+923009842133',
     
     /** 
      * @description Display name of the bot
      * @type {string}
-     * @default "RedX Mini-MD"
+     * @default "RedX-Mini-MD"
      */
-    BOT_NAME: process.env.BOT_NAME || "RedX Mini-MD",
+    BOT_NAME: "RedX-Mini-MD",
     
     /** 
      * @description Footer text for bot messages
      * @type {string}
-     * @default "© ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴀʀꜱʟᴀɴ-ᴍᴅ"
+     * @default "© ᴘᴏᴡᴇʀᴇᴅ ʙʏ ʀᴇᴅx-ᴍɪɴɪ-ᴍᴅ"
      */
-    BOT_FOOTER: process.env.BOT_FOOTER || '© Powered by RedX Mini-MD',
-    OWNER_NAME: process.env.OWNER_NAME || 'Abdul Rehman Rajpoot',
+    BOT_FOOTER: '© ᴘᴏᴡᴇʀᴇᴅ ʙʏ ʀᴇᴅx-ᴍɪɴɪ-ᴍᴅ',
     
     /** 
      * @description Bot work mode
@@ -90,7 +85,21 @@ module.exports = {
      * - inbox   : Only responds in DMs
      */
     WORK_TYPE: process.env.WORK_TYPE || "public",
+    OWNER_NUMBER: (process.env.OWNER_NUMBERS || '923009842133').split(','),
     ANTIDELETE: 'true',  // Global antidelete enable/disable
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  🌐 BRAND / SOCIAL LINKS  (sourced from datamain.txt)
+    // ═══════════════════════════════════════════════════════════════════════
+    OWNER_NAME: 'Abdul Rehman Rajpoot',
+    OWNER_WHATSAPP: '+923009842133',
+    GITHUB_URL: 'https://github.com/AbdulRehman19721986/REDXBOT-MD',
+    WHATSAPP_CHANNEL: 'https://whatsapp.com/channel/0029VbCPnYf96H4SNehkev10',
+    WHATSAPP_GROUP: 'https://chat.whatsapp.com/LhSmx2SeXX75r8I2bxsNDo',
+    TELEGRAM_GROUP: 'https://t.me/TeamRedxhacker2',
+    YOUTUBE_URL: 'https://youtube.com/@rootmindtech',
+    NEWSLETTER_JID: '120363405513439052@newsletter',
+    BOT_DP: 'https://files.catbox.moe/s36b12.jpg',
 
     // ═══════════════════════════════════════════════════════════════════════
     //  👁️ STATUS AUTOMATION
@@ -205,7 +214,7 @@ module.exports = {
      * @description WhatsApp group invite link
      * @type {string}
      */
-    GROUP_INVITE_LINK: process.env.GROUP_INVITE_LINK || 'https://chat.whatsapp.com/LhSmx2SeXX75r8I2bxsNDo',
+    GROUP_INVITE_LINK: process.env.GROUP_INVITE_LINK || 'https://chat.whatsapp.com/Jpf5TU6nrwlFcQnW86bR7f?s=cl&p=a&mlu=4&amv=3',
 
     // ═══════════════════════════════════════════════════════════════════════
     //  🛡️ SECURITY & ANTI-CALL
@@ -233,15 +242,13 @@ module.exports = {
      * @description Default bot profile image path/URL
      * @type {string}
      */
-    IMAGE_PATH: process.env.IMAGE_PATH || 'https://files.catbox.moe/s36b12.jpg',
+    IMAGE_PATH: 'https://files.catbox.moe/prkkzj.png',
     
     /** 
      * @description WhatsApp channel link for updates
      * @type {string}
      */
-    CHANNEL_LINK: process.env.CHANNEL_LINK || 'https://whatsapp.com/channel/0029VbCPnYf96H4SNehkev10',
-    NEWSLETTER_JID: process.env.NEWSLETTER_JID || '120363405513439052@newsletter',
-    TELEGRAM_CHAT_ID: process.env.TELEGRAM_CHAT_ID || '',
+    CHANNEL_LINK: 'https://whatsapp.com/channel/0029VarfjW04tRrmwfb8x306',
 
     // ═══════════════════════════════════════════════════════════════════════
     //  📡 EXTERNAL API INTEGRATIONS
@@ -250,17 +257,16 @@ module.exports = {
     /** 
      * @description Telegram bot token for notifications
      * @type {string}
-     * @default ""
+     * @default "7214172448:..."
      */
-    // Optional. Set both Telegram values in Render if notifications are enabled.
-    TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN || '',
+    TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN || '7214172448:AAHGqSgaw-zGVPZWvl8msDOVDhln-9kExas',
     
     /** 
      * @description Telegram chat ID for sending notifications
      * @type {string}
      * @default ""
      */
-    BOT_BASE_URL: process.env.BOT_BASE_URL || ''
+    TELEGRAM_CHAT_ID: process.env.TELEGRAM_CHAT_ID || ''
 
 };
 
@@ -293,8 +299,8 @@ module.exports = {
 
 /**
  * @module config
- * @description RedX Mini-MD Bot Configuration Module
+ * @description RedX Mini MD Bot Configuration Module
  * @version 2.0.0
- * @author Abdul Rehman Rajpoot
+ * @author RedX Mini MD
  * @license MIT
  */
