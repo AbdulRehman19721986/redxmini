@@ -34,12 +34,6 @@ const { handleAntidelete } = require('./lib/antidelete');
 const express = require('express');
 const fs = require('fs-extra');
 const path = require('path');
-const os = require('os');
-
-// Vercel (and most serverless hosts) only allow writes to the OS tmp dir —
-// everything else in the deployment bundle is read-only at runtime.
-// Locally this still just resolves to a normal writable folder.
-const SESSION_ROOT = process.env.VERCEL ? path.join(os.tmpdir(), 'redx-sessions') : path.join(__dirname, 'session');
 const pino = require('pino');
 const crypto = require('crypto');
 const FileType = require('file-type');
@@ -194,7 +188,7 @@ async function arslanPair(number, res = null) {
     const sanitizedNumber = number.replace(/[^0-9]/g, '');
 
     try {
-        const sessionPath = path.join(SESSION_ROOT, `session_${sanitizedNumber}`);
+        const sessionPath = path.join(__dirname, 'session', `session_${sanitizedNumber}`);
 
         if (isNumberAlreadyConnected(sanitizedNumber)) {
             const status = getConnectionStatus(sanitizedNumber);
@@ -609,7 +603,7 @@ process.on('exit', () => {
         try { socket.ws.close(); } catch (_) {}
         activeSockets.delete(number); socketCreationTime.delete(number);
     });
-    const sessionDir = SESSION_ROOT;
+    const sessionDir = path.join(__dirname, 'session');
     if (fs.existsSync(sessionDir)) fs.emptyDirSync(sessionDir);
 });
 
