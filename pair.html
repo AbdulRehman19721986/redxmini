@@ -1,0 +1,824 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a080c">
+  <meta name="description" content="Official RedX Mini-MD WhatsApp session pairing.">
+  <title>RedX Mini-MD | Secure pairing</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+    :root {
+      color-scheme: dark;
+      --ink: #fff8f4;
+      --muted: #a99799;
+      --dim: #716269;
+      --line: rgba(255, 242, 236, .13);
+      --line-strong: rgba(255, 242, 236, .22);
+      --base: #0a080c;
+      --surface: rgba(25, 18, 24, .76);
+      --surface-2: rgba(18, 13, 18, .84);
+      --coral: #f15c4d;
+      --coral-bright: #ff907d;
+      --gold: #f3bf59;
+      --green: #71d6a8;
+      --shadow: 0 34px 100px rgba(0, 0, 0, .48);
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; background: var(--base); }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 13% 18%, rgba(241, 92, 77, .15), transparent 27rem),
+        radial-gradient(circle at 91% 82%, rgba(243, 191, 89, .09), transparent 24rem),
+        var(--base);
+      font: 14px/1.5 Manrope, ui-sans-serif, system-ui, sans-serif;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+
+    .scene {
+      position: relative;
+      min-height: 100vh;
+      isolation: isolate;
+      display: grid;
+      place-items: center;
+      padding: 38px;
+    }
+
+    .scene::before {
+      position: fixed;
+      z-index: -2;
+      inset: 0;
+      content: "";
+      opacity: .42;
+      background-image:
+        linear-gradient(rgba(255,255,255,.026) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.026) 1px, transparent 1px);
+      background-size: 46px 46px;
+      mask-image: radial-gradient(ellipse at center, black 5%, transparent 76%);
+      animation: grid-drift 22s linear infinite;
+    }
+
+    .scene::after {
+      position: fixed;
+      z-index: -1;
+      inset: 0;
+      pointer-events: none;
+      content: "";
+      background: radial-gradient(ellipse at center, transparent 34%, rgba(0,0,0,.5) 100%);
+    }
+
+    .orb {
+      position: fixed;
+      z-index: -1;
+      border-radius: 999px;
+      pointer-events: none;
+      filter: blur(1px);
+      mix-blend-mode: screen;
+    }
+
+    .orb-a {
+      width: 19rem;
+      height: 19rem;
+      top: -7rem;
+      left: -5rem;
+      background: radial-gradient(circle, rgba(241,92,77,.3), transparent 67%);
+      animation: float-a 15s ease-in-out infinite;
+    }
+
+    .orb-b {
+      width: 25rem;
+      height: 25rem;
+      right: -9rem;
+      bottom: -12rem;
+      background: radial-gradient(circle, rgba(243,191,89,.18), transparent 67%);
+      animation: float-b 19s ease-in-out infinite;
+    }
+
+    .orb-c {
+      width: 11rem;
+      height: 11rem;
+      top: 30%;
+      right: 11%;
+      background: radial-gradient(circle, rgba(255,144,125,.12), transparent 69%);
+      animation: float-c 11s ease-in-out infinite;
+    }
+
+    .shell {
+      display: grid;
+      width: min(1120px, 100%);
+      min-height: 650px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      background: linear-gradient(135deg, rgba(40,27,33,.76), rgba(14,10,15,.91));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(22px);
+      animation: shell-in .85s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .showcase {
+      position: relative;
+      display: flex;
+      min-height: 650px;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      padding: 42px 44px 38px;
+      border-right: 1px solid var(--line);
+      background:
+        linear-gradient(155deg, rgba(101,42,36,.58), transparent 54%),
+        radial-gradient(circle at 75% 42%, rgba(241,92,77,.12), transparent 17rem),
+        rgba(23, 15, 20, .64);
+    }
+
+    .showcase::after {
+      position: absolute;
+      right: -130px;
+      bottom: -160px;
+      width: 390px;
+      height: 390px;
+      content: "";
+      border: 1px solid rgba(255, 144, 125, .2);
+      border-radius: 50%;
+      box-shadow:
+        0 0 0 36px rgba(255,144,125,.025),
+        0 0 0 76px rgba(255,144,125,.018),
+        0 0 0 116px rgba(255,144,125,.012);
+      animation: orbit-ring 16s linear infinite;
+    }
+
+    .brand {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: rise-in .7s .12s both;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 46px;
+      height: 46px;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 15px;
+      color: white;
+      background: linear-gradient(145deg, #ff806d, #cc392f);
+      box-shadow: 0 12px 26px rgba(241,92,77,.25), inset 0 1px 0 rgba(255,255,255,.36);
+      font: 700 22px Space Grotesk, sans-serif;
+    }
+
+    .brand strong {
+      display: block;
+      letter-spacing: -.045em;
+      font: 700 18px Space Grotesk, sans-serif;
+    }
+
+    .brand strong span { color: var(--coral-bright); }
+    .brand small {
+      display: block;
+      margin-top: 2px;
+      color: #a89090;
+      font: 10px 'DM Mono', monospace;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .hero-copy {
+      position: relative;
+      z-index: 1;
+      max-width: 490px;
+      animation: rise-in .8s .22s both;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--coral-bright);
+      font: 10px 'DM Mono', monospace;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 26px;
+      height: 1px;
+      content: "";
+      background: var(--coral);
+      box-shadow: 0 0 12px var(--coral);
+    }
+
+    h1 {
+      max-width: 500px;
+      margin: 18px 0 18px;
+      color: #fff8f4;
+      font: 700 clamp(2.8rem, 5vw, 5rem)/.98 Space Grotesk, sans-serif;
+      letter-spacing: -.075em;
+    }
+
+    h1 em {
+      color: var(--coral-bright);
+      font-style: normal;
+      text-shadow: 0 0 38px rgba(241,92,77,.2);
+    }
+
+    .hero-copy > p {
+      max-width: 420px;
+      margin: 0;
+      color: #b6a4a5;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .signal-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 28px;
+    }
+
+    .signal {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: #c5b3b3;
+      background: rgba(255,255,255,.035);
+      font: 10px 'DM Mono', monospace;
+    }
+
+    .signal i {
+      display: block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 4px rgba(113,214,168,.1), 0 0 12px var(--green);
+      animation: signal-pulse 2.4s ease-in-out infinite;
+    }
+
+    .showcase-foot {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      color: #7e6b70;
+      font: 10px 'DM Mono', monospace;
+      letter-spacing: .06em;
+      animation: rise-in .7s .34s both;
+    }
+
+    .showcase-foot strong {
+      display: block;
+      margin-top: 4px;
+      color: #bdabad;
+      font: 600 11px Manrope, sans-serif;
+      letter-spacing: 0;
+    }
+
+    .version {
+      color: #d5b15f;
+      text-align: right;
+    }
+
+    .auth {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 54px clamp(28px, 6vw, 82px);
+      background: rgba(10,8,12,.42);
+    }
+
+    .auth-inner {
+      width: min(100%, 380px);
+      margin: 0 auto;
+      animation: rise-in .8s .18s both;
+    }
+
+    .auth-header { margin-bottom: 30px; }
+    .auth-header h2 {
+      margin: 12px 0 7px;
+      font: 700 30px Space Grotesk, sans-serif;
+      letter-spacing: -.06em;
+    }
+
+    .auth-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .security-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #b4a4a9;
+      font: 10px 'DM Mono', monospace;
+      letter-spacing: .05em;
+    }
+
+    .shield {
+      display: grid;
+      width: 22px;
+      height: 22px;
+      place-items: center;
+      border: 1px solid rgba(113,214,168,.22);
+      border-radius: 7px;
+      color: var(--green);
+      background: rgba(113,214,168,.08);
+      font-size: 11px;
+    }
+
+    .field-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 9px;
+      color: #e8d9d7;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .field-label span {
+      color: #77666c;
+      font: 10px 'DM Mono', monospace;
+      font-weight: 400;
+    }
+
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px;
+      border: 1px solid var(--line-strong);
+      border-radius: 16px;
+      background: rgba(255,255,255,.045);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+      transition: border-color .25s, box-shadow .25s, background .25s;
+    }
+
+    .input-wrap:focus-within {
+      border-color: var(--coral);
+      background: rgba(241,92,77,.055);
+      box-shadow: 0 0 0 4px rgba(241,92,77,.1), 0 12px 30px rgba(0,0,0,.15);
+    }
+
+    .input-wrap.invalid {
+      border-color: #eb806f;
+      box-shadow: 0 0 0 4px rgba(235,128,111,.08);
+    }
+
+    .country {
+      display: grid;
+      width: 42px;
+      height: 43px;
+      place-items: center;
+      border-right: 1px solid var(--line);
+      color: #c8b6b8;
+      font: 12px 'DM Mono', monospace;
+    }
+
+    input {
+      min-width: 0;
+      flex: 1;
+      height: 43px;
+      padding: 0 6px;
+      border: 0;
+      outline: 0;
+      color: var(--ink);
+      background: transparent;
+      font: 14px 'DM Mono', monospace;
+      letter-spacing: .04em;
+    }
+
+    input::placeholder { color: #74646a; }
+
+    #pairButton {
+      display: inline-flex;
+      height: 43px;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 15px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 11px;
+      color: white;
+      background: linear-gradient(135deg, #fa735f, #d8483c);
+      box-shadow: 0 10px 20px rgba(241,92,77,.2), inset 0 1px 0 rgba(255,255,255,.25);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+      transition: transform .25s, filter .25s, box-shadow .25s;
+    }
+
+    #pairButton::after {
+      width: 6px;
+      height: 6px;
+      content: "→";
+      color: #ffd8cf;
+      font-size: 15px;
+      line-height: 0;
+    }
+
+    #pairButton:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 13px 26px rgba(241,92,77,.32), inset 0 1px 0 rgba(255,255,255,.25);
+      transform: translateY(-2px);
+    }
+
+    #pairButton:active { transform: translateY(0); }
+    #pairButton:disabled { cursor: wait; opacity: .68; filter: saturate(.7); transform: none; }
+
+    .hint {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 20px;
+      margin: 9px 0 0;
+      color: var(--dim);
+      font-size: 10px;
+    }
+
+    .hint::before {
+      width: 4px;
+      height: 4px;
+      content: "";
+      border-radius: 50%;
+      background: #8e767c;
+    }
+
+    .status {
+      min-height: 20px;
+      margin: 13px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .status.error { color: #ff9b89; }
+    .status.success { color: var(--green); }
+
+    .result {
+      position: relative;
+      display: none;
+      overflow: hidden;
+      margin-top: 22px;
+      padding: 18px;
+      border: 1px solid rgba(113,214,168,.24);
+      border-radius: 17px;
+      background: linear-gradient(135deg, rgba(113,214,168,.1), rgba(255,255,255,.035));
+      animation: result-in .55s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .result.visible { display: block; }
+
+    .result::after {
+      position: absolute;
+      top: 0;
+      left: -80%;
+      width: 60%;
+      height: 100%;
+      content: "";
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+      transform: skewX(-20deg);
+      animation: sheen 2.8s ease-in-out infinite;
+    }
+
+    .result-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .result-label {
+      color: #bde5d1;
+      font: 10px 'DM Mono', monospace;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+
+    .ready {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--green);
+      font: 10px 'DM Mono', monospace;
+    }
+
+    .ready i {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    .code-row {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    #code {
+      flex: 1;
+      min-width: 0;
+      color: #f5fff9;
+      font: 600 clamp(22px, 5vw, 29px) 'DM Mono', monospace;
+      letter-spacing: .15em;
+    }
+
+    #copyButton {
+      padding: 10px 12px;
+      border: 1px solid rgba(113,214,168,.28);
+      border-radius: 10px;
+      color: #d7f5e5;
+      background: rgba(113,214,168,.08);
+      font-size: 10px;
+      font-weight: 800;
+      transition: background .2s, transform .2s;
+    }
+
+    #copyButton:hover { background: rgba(113,214,168,.17); transform: translateY(-1px); }
+    .result-note { position: relative; z-index: 1; margin: 10px 0 0; color: #8eaca0; font-size: 10px; }
+
+    .instructions {
+      display: grid;
+      gap: 10px;
+      margin-top: 30px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+    }
+
+    .instructions-title {
+      color: #77666c;
+      font: 10px 'DM Mono', monospace;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #9d8c91;
+      font-size: 11px;
+    }
+
+    .step b {
+      display: grid;
+      width: 25px;
+      height: 25px;
+      flex: 0 0 25px;
+      place-items: center;
+      border: 1px solid rgba(241,92,77,.2);
+      border-radius: 8px;
+      color: var(--coral-bright);
+      background: rgba(241,92,77,.08);
+      font: 10px 'DM Mono', monospace;
+    }
+
+    .auth-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 28px;
+      color: #716269;
+      font: 10px 'DM Mono', monospace;
+    }
+
+    .auth-footer a { color: #c69b90; text-decoration: none; }
+    .auth-footer a:hover { color: var(--coral-bright); }
+
+    .loader {
+      display: none;
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(255,255,255,.35);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    #pairButton.loading .loader { display: block; }
+    #pairButton.loading::after { display: none; }
+
+    @keyframes grid-drift { from { transform: translate3d(0,0,0); } to { transform: translate3d(46px,46px,0); } }
+    @keyframes float-a { 0%,100% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(65px,40px,0) scale(1.1); } }
+    @keyframes float-b { 0%,100% { transform: translate3d(0,0,0); } 50% { transform: translate3d(-55px,-34px,0); } }
+    @keyframes float-c { 0%,100% { transform: translate3d(0,0,0); opacity: .65; } 50% { transform: translate3d(-30px,35px,0); opacity: 1; } }
+    @keyframes shell-in { from { opacity: 0; transform: translateY(22px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes rise-in { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes result-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes orbit-ring { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes signal-pulse { 0%,100% { opacity: .7; } 50% { opacity: 1; } }
+    @keyframes sheen { 0%,45% { left: -80%; } 72%,100% { left: 130%; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+    }
+
+    @media (min-width: 820px) {
+      .shell { grid-template-columns: 1.04fr .96fr; }
+    }
+
+    @media (max-width: 819px) {
+      .scene { padding: 18px; }
+      .shell { min-height: auto; }
+      .showcase { min-height: 430px; padding: 28px 26px 27px; }
+      .showcase::after { right: -180px; bottom: -210px; }
+      .auth { padding: 42px 26px 34px; }
+    }
+
+    @media (max-width: 480px) {
+      .scene { padding: 0; }
+      .shell { border-right: 0; border-left: 0; border-radius: 0; }
+      .showcase { min-height: 390px; }
+      h1 { font-size: 2.75rem; }
+      .input-wrap { flex-wrap: wrap; }
+      .input-wrap input { order: 1; width: calc(100% - 54px); }
+      .input-wrap #pairButton { order: 2; width: 100%; }
+      .country { order: 0; }
+      .auth { padding: 36px 21px 28px; }
+      #code { letter-spacing: .08em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="scene">
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="orb orb-c"></div>
+
+    <main class="shell">
+      <section class="showcase">
+        <div class="brand">
+          <div class="brand-mark">R</div>
+          <div>
+            <strong>RedX <span>Mini-MD</span></strong>
+            <small>Official session gateway</small>
+          </div>
+        </div>
+
+        <div class="hero-copy">
+          <div class="eyebrow">Secure device link</div>
+          <h1>Your bot.<br><em>Your command.</em></h1>
+          <p>Pair your WhatsApp session with the official RedX Mini-MD system. One secure code unlocks a full plugin-ready automation runtime.</p>
+          <div class="signal-row">
+            <span class="signal"><i></i>Multi-device ready</span>
+            <span class="signal"><i></i>Session protected</span>
+          </div>
+        </div>
+
+        <div class="showcase-foot">
+          <div>BUILT FOR <strong>Abdul Rehman Rajpoot</strong></div>
+          <div class="version">REDX CORE<strong>v2.0 / LIVE</strong></div>
+        </div>
+      </section>
+
+      <section class="auth">
+        <div class="auth-inner">
+          <header class="auth-header">
+            <div class="security-badge"><span class="shield">✓</span> Connection encrypted end-to-end</div>
+            <h2>Welcome back.</h2>
+            <p>Enter your WhatsApp number to generate a one-time pairing code.</p>
+          </header>
+
+          <form id="pairForm" novalidate>
+            <div class="field-label">
+              <label for="number">WhatsApp number</label>
+              <span>REQUIRED</span>
+            </div>
+            <div id="inputWrap" class="input-wrap">
+              <div class="country">+</div>
+              <input id="number" name="number" inputmode="numeric" autocomplete="tel" placeholder="92 300 9842133" aria-describedby="hint" required>
+              <button id="pairButton" type="submit"><span class="loader"></span><span class="button-copy">Generate code</span></button>
+            </div>
+            <p id="hint" class="hint">Use your country code without spaces or a leading zero.</p>
+          </form>
+
+          <div id="result" class="result" aria-live="polite">
+            <div class="result-top">
+              <span class="result-label">Pairing code ready</span>
+              <span class="ready"><i></i>LIVE</span>
+            </div>
+            <div class="code-row">
+              <strong id="code">--------</strong>
+              <button id="copyButton" type="button">Copy</button>
+            </div>
+            <p class="result-note">Open WhatsApp → Linked devices → Link with phone number.</p>
+          </div>
+
+          <p id="status" class="status" aria-live="polite"></p>
+
+          <div class="instructions">
+            <div class="instructions-title">Three steps to connect</div>
+            <div class="step"><b>01</b><span>Open WhatsApp and select Linked devices.</span></div>
+            <div class="step"><b>02</b><span>Choose Link with phone number instead.</span></div>
+            <div class="step"><b>03</b><span>Enter the RedX code shown above.</span></div>
+          </div>
+
+          <footer class="auth-footer">
+            <span>© RedX Mini-MD</span>
+            <a href="https://github.com/AbdulRehman19721986/REDXBOT-MD" target="_blank" rel="noreferrer">View source ↗</a>
+          </footer>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const form = document.getElementById('pairForm');
+    const input = document.getElementById('number');
+    const inputWrap = document.getElementById('inputWrap');
+    const button = document.getElementById('pairButton');
+    const buttonCopy = button.querySelector('.button-copy');
+    const result = document.getElementById('result');
+    const code = document.getElementById('code');
+    const status = document.getElementById('status');
+    const hint = document.getElementById('hint');
+    const copy = document.getElementById('copyButton');
+
+    function setStatus(message, type) {
+      status.className = 'status' + (type ? ' ' + type : '');
+      status.textContent = message;
+    }
+
+    function setLoading(loading) {
+      button.disabled = loading;
+      button.classList.toggle('loading', loading);
+      buttonCopy.textContent = loading ? 'Generating' : 'Generate code';
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const number = input.value.replace(/[^0-9]/g, '');
+      result.classList.remove('visible');
+      inputWrap.classList.remove('invalid');
+      hint.textContent = 'Use your country code without spaces or a leading zero.';
+      setStatus('', '');
+
+      if (number.length < 10 || number.length > 15) {
+        inputWrap.classList.add('invalid');
+        hint.textContent = 'Enter a valid number with country code, for example 923009842133.';
+        setStatus('We could not validate that number.', 'error');
+        input.focus();
+        return;
+      }
+
+      setLoading(true);
+      setStatus('Contacting the RedX session gateway…', '');
+
+      try {
+        const response = await fetch('/code?number=' + encodeURIComponent(number), {
+          headers: { Accept: 'application/json' }
+        });
+        const data = await response.json();
+        if (!response.ok || !data.code) throw new Error(data.error || 'Pairing code unavailable');
+        code.textContent = data.code;
+        result.classList.add('visible');
+        setStatus('Code ready. Enter it in WhatsApp Linked devices.', 'success');
+      } catch (error) {
+        setStatus(error instanceof Error ? error.message : 'The pairing service is unavailable. Try again.', 'error');
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    input.addEventListener('input', () => {
+      inputWrap.classList.remove('invalid');
+      if (status.classList.contains('error')) setStatus('', '');
+    });
+
+    copy.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(code.textContent);
+        copy.textContent = 'Copied';
+        setStatus('Pairing code copied to your clipboard.', 'success');
+        window.setTimeout(() => { copy.textContent = 'Copy'; }, 1500);
+      } catch {
+        setStatus('Select and copy the pairing code manually.', 'error');
+      }
+    });
+  </script>
+</body>
+</html>
