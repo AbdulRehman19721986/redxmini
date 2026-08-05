@@ -14,6 +14,7 @@ const { arslanmd } = require('./lib/system');
 const config = require('./config');
 const events = require('./arslan');
 const { sms } = require('./lib/msg');
+const database = require('./lib/database');
 const {
     connectdb,
     saveSessionToMongoDB,
@@ -28,8 +29,13 @@ const {
     verifyOTPFromMongoDB,
     incrementStats,
     getStatsForNumber,
-    isDatabaseReady
-} = require('./lib/database');
+} = database;
+// Older deployments may still have a database module from before this guard
+// was exported. Treat that legacy shape as "database unavailable" instead of
+// crashing during the delayed auto-reconnect check.
+const isDatabaseReady = typeof database.isDatabaseReady === 'function'
+    ? database.isDatabaseReady
+    : () => false;
 const { handleAntidelete } = require('./lib/antidelete');
 
 const express = require('express');
