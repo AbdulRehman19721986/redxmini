@@ -27,7 +27,8 @@ const {
     saveOTPToMongoDB,
     verifyOTPFromMongoDB,
     incrementStats,
-    getStatsForNumber
+    getStatsForNumber,
+    isDatabaseReady
 } = require('./lib/database');
 const { handleAntidelete } = require('./lib/antidelete');
 
@@ -590,6 +591,10 @@ router.get('/stats', async (req, res) => {
 
 async function autoReconnectFromMongoDB() {
     try {
+        if (!isDatabaseReady()) {
+            arslanLog('MongoDB is unavailable; skipping automatic session restore.', 'warning');
+            return;
+        }
         arslanLog('Attempting auto-reconnect from MongoDB...', 'info');
         const numbers = await getAllNumbersFromMongoDB();
         if (!numbers.length) { arslanLog('No numbers in MongoDB', 'info'); return; }
