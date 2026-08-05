@@ -105,7 +105,10 @@ module.exports = {
     return module.exports;
   })();
   _bundle.push(_m);
-  if (_m.command) require('../lib/commandHandler').registerCommand(_m.command, _m);
+  if (_m.command) {
+    const ch = require('../lib/commandHandler');
+    if (typeof ch.registerCommand === 'function') ch.registerCommand(_m.command, _m);
+  }
 } catch(e) { console.warn('[BUNDLE:cat-04-download] tiktok.js:', e.message); }
 
 /* ===== instagram.js ===== */
@@ -147,7 +150,10 @@ module.exports = {
     return module.exports;
   })();
   _bundle.push(_m);
-  if (_m.command) require('../lib/commandHandler').registerCommand(_m.command, _m);
+  if (_m.command) {
+    const ch = require('../lib/commandHandler');
+    if (typeof ch.registerCommand === 'function') ch.registerCommand(_m.command, _m);
+  }
 } catch(e) { console.warn('[BUNDLE:cat-04-download] instagram.js:', e.message); }
 
 /* ===== twitter.js ===== */
@@ -180,7 +186,10 @@ module.exports = {
     return module.exports;
   })();
   _bundle.push(_m);
-  if (_m.command) require('../lib/commandHandler').registerCommand(_m.command, _m);
+  if (_m.command) {
+    const ch = require('../lib/commandHandler');
+    if (typeof ch.registerCommand === 'function') ch.registerCommand(_m.command, _m);
+  }
 } catch(e) { console.warn('[BUNDLE:cat-04-download] twitter.js:', e.message); }
 
 /* ===== facebook.js ===== */
@@ -212,7 +221,10 @@ module.exports = {
     return module.exports;
   })();
   _bundle.push(_m);
-  if (_m.command) require('../lib/commandHandler').registerCommand(_m.command, _m);
+  if (_m.command) {
+    const ch = require('../lib/commandHandler');
+    if (typeof ch.registerCommand === 'function') ch.registerCommand(_m.command, _m);
+  }
 } catch(e) { console.warn('[BUNDLE:cat-04-download] facebook.js:', e.message); }
 
 module.exports = _bundle;

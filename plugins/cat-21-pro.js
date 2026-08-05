@@ -343,8 +343,10 @@ _bundle.push({
 for (const m of _bundle) {
     try {
         const ch = require('../lib/commandHandler');
-        if (m.command) ch.registerCommand(m.command, m);
-        if (m.aliases) m.aliases.forEach(a => { try { ch.registerCommand(a, m); } catch {} });
+        if (typeof ch.registerCommand === 'function') {
+            if (m.command) ch.registerCommand(m.command, m);
+            if (m.aliases) m.aliases.forEach(a => { try { ch.registerCommand(a, m); } catch {} });
+        }
     } catch {}
 }
 module.exports = _bundle;

@@ -528,7 +528,7 @@ try {
 const axios = require('axios');
 const fs    = require('fs');
 const path  = require('path');
-const gtts  = require('gtts');
+const gtts  = require('../lib/tts');
 const { exec } = require('child_process');
 const { promisify } = require('util');
 const execAsync = promisify(exec);

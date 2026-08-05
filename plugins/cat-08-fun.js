@@ -13,7 +13,7 @@ try {
  *                                                                           *
  *****************************************************************************/
 
-const gtts = require('gtts');
+const gtts = require('../lib/tts');
 const fs = require('fs');
 const path = require('path');
 
@@ -1086,7 +1086,7 @@ try {
  *                                                                           *
  *****************************************************************************/
 
-const gtts = require('gtts');
+const gtts = require('../lib/tts');
 const fs = require('fs');
 const path = require('path');
 
@@ -2130,7 +2130,7 @@ try {
  *                                                                           *
  *****************************************************************************/
 
-const gtts = require('gtts');
+const gtts = require('../lib/tts');
 const fs = require('fs');
 const path = require('path');
 

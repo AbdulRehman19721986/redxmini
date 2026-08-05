@@ -138,7 +138,7 @@ try {
  *                                                                           *
  *****************************************************************************/
 
-const gTTS = require('gtts');
+const gTTS = require('../lib/tts');
 const fs = require('fs');
 const path = require('path');
 
