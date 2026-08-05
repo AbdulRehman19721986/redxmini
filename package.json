@@ -14,7 +14,7 @@
     "@mrnima/facebook-downloader": "latest",
     "@mrnima/tiktok-downloader": "latest",
     "@octokit/rest": "^20.0.2",
-    "@whiskeysockets/baileys": "latest",
+    "@whiskeysockets/baileys": "6.7.23",
     "acrcloud": "latest",
     "api-qasim": "latest",
     "axios": "latest",
