@@ -1,0 +1,168 @@
+name: Deploy
+
+# ── PRIVATE REPO ONLY ──────────────────────────────────────────────────────
+# This workflow lives in the PRIVATE repository.
+# It checks out THIS repo's own code (via the automatic GITHUB_TOKEN —
+# never a cross-repo token) and deploys to your configured platform(s).
+#
+# Triggers:
+#   • Every push to main  →  automatic deploy
+#   • workflow_dispatch   →  manual or triggered by the PUBLIC repo
+#
+# Secrets required (set in the PRIVATE repo's Settings → Secrets):
+#   RENDER_DEPLOY_HOOK   — Render deploy-hook URL  (if USE_RENDER = true)
+#   RAILWAY_TOKEN        — Railway API token        (if USE_RAILWAY = true)
+#   HEROKU_API_KEY       — Heroku API key           (if USE_HEROKU = true)
+#
+# Variables required (Settings → Variables, not secrets — no sensitive data):
+#   USE_RENDER           — "true" to enable Render step
+#   USE_RAILWAY          — "true" to enable Railway step
+#   USE_HEROKU           — "true" to enable Heroku step
+#   HEROKU_APP_NAME      — your Heroku app name     (if USE_HEROKU = true)
+#   RAILWAY_PROJECT_ID   — Railway project ID       (if USE_RAILWAY = true)
+#   RAILWAY_SERVICE_NAME — Railway service name     (if USE_RAILWAY = true)
+#   RAILWAY_ENVIRONMENT  — Railway environment      (if USE_RAILWAY = true, default: production)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Manual deploy reason"
+        required: false
+        default: "manual trigger"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # ── Commit tracking ──────────────────────────────────────────────────
+      - name: Record commit being deployed
+        run: |
+          echo "Deploying commit: ${GITHUB_SHA}"
+          echo "Branch:           ${GITHUB_REF_NAME}"
+          echo "Triggered by:     ${GITHUB_EVENT_NAME}"
+          echo "${GITHUB_SHA}" > deployed_commit.txt
+
+      # ── Render ──────────────────────────────────────────────────────────
+      # Deploy-hook URL is a credential; stored only as a secret.
+      # Skip if not configured (Render's own GitHub integration may handle it).
+      - name: Trigger Render deploy
+        if: ${{ vars.USE_RENDER == 'true' }}
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "${RENDER_DEPLOY_HOOK}" ]; then
+            echo "RENDER_DEPLOY_HOOK not set — skipping Render step."
+            exit 0
+          fi
+          echo "Triggering Render deploy…"
+          HTTP_STATUS=$(curl -sSf \
+            -o /tmp/render_response.txt \
+            -w "%{http_code}" \
+            -X POST \
+            "${RENDER_DEPLOY_HOOK}" || true)
+          echo "Render responded: HTTP ${HTTP_STATUS}"
+          if [ "${HTTP_STATUS}" != "200" ] && [ "${HTTP_STATUS}" != "201" ] && [ "${HTTP_STATUS}" != "202" ]; then
+            echo "::error::Render deploy hook returned HTTP ${HTTP_STATUS}" >&2
+            cat /tmp/render_response.txt >&2
+            exit 1
+          fi
+          echo "Render deploy triggered."
+
+      # ── Railway ─────────────────────────────────────────────────────────
+      # Uses railway CLI with explicit project/service/environment so it
+      # works correctly on a clean CI runner (no local interactive config).
+      # RAILWAY_TOKEN, RAILWAY_PROJECT_ID, RAILWAY_SERVICE_NAME required.
+      - name: Deploy to Railway
+        if: ${{ vars.USE_RAILWAY == 'true' }}
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
+          RAILWAY_SERVICE_NAME: ${{ vars.RAILWAY_SERVICE_NAME }}
+          RAILWAY_ENVIRONMENT: ${{ vars.RAILWAY_ENVIRONMENT || 'production' }}
+        run: |
+          if [ -z "${RAILWAY_TOKEN}" ] || [ -z "${RAILWAY_PROJECT_ID}" ] || [ -z "${RAILWAY_SERVICE_NAME}" ]; then
+            echo "RAILWAY_TOKEN, RAILWAY_PROJECT_ID, or RAILWAY_SERVICE_NAME not set — skipping Railway step."
+            exit 0
+          fi
+          echo "Installing Railway CLI…"
+          npm install -g @railway/cli --quiet
+          echo "Deploying to Railway (project=${RAILWAY_PROJECT_ID} service=${RAILWAY_SERVICE_NAME} env=${RAILWAY_ENVIRONMENT})…"
+          # --detach so the step returns immediately; Railway deploys async.
+          railway up \
+            --service "${RAILWAY_SERVICE_NAME}" \
+            --environment "${RAILWAY_ENVIRONMENT}" \
+            --detach
+          echo "Railway deploy triggered."
+
+      # ── Heroku ──────────────────────────────────────────────────────────
+      # Git-push over HTTPS; credential injected at runtime via env var and
+      # used only in this step. The remote is removed after push so the
+      # credential cannot leak into subsequent steps or git config artifacts.
+      - name: Deploy to Heroku
+        if: ${{ vars.USE_HEROKU == 'true' }}
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP_NAME: ${{ vars.HEROKU_APP_NAME }}
+        run: |
+          if [ -z "${HEROKU_API_KEY}" ] || [ -z "${HEROKU_APP_NAME}" ]; then
+            echo "HEROKU_API_KEY or HEROKU_APP_NAME not set — skipping Heroku step."
+            exit 0
+          fi
+          echo "Deploying to Heroku app: ${HEROKU_APP_NAME}…"
+          # Credential is injected from env var only — never hard-coded.
+          git remote add heroku \
+            "https://heroku:${HEROKU_API_KEY}@git.heroku.com/${HEROKU_APP_NAME}.git"
+          git push heroku "HEAD:refs/heads/main" --force
+          # Remove the remote immediately so the credential is not retained
+          # in git config for subsequent steps.
+          git remote remove heroku
+          echo "Heroku deploy complete."
+
+      # ── Health check ─────────────────────────────────────────────────────
+      # railway.json already declares healthcheckPath: /health.
+      # This step waits for a healthy response after deploy.
+      # Set APP_URL in the private repo's variables if you want it enabled.
+      - name: Health check
+        if: ${{ vars.APP_URL != '' }}
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          echo "Waiting 30s for service to start…"
+          sleep 30
+          MAX_TRIES=10
+          DELAY=15
+          for i in $(seq 1 $MAX_TRIES); do
+            HTTP_STATUS=$(curl -sSf -o /dev/null -w "%{http_code}" \
+              "${APP_URL}/health" --max-time 10 || echo "000")
+            echo "Attempt ${i}/${MAX_TRIES} — HTTP ${HTTP_STATUS}"
+            if [ "${HTTP_STATUS}" = "200" ]; then
+              echo "Health check passed."
+              exit 0
+            fi
+            sleep $DELAY
+          done
+          echo "::warning::Health check did not pass within timeout. Deployment may still be starting."
+
+      # ── Artifact ─────────────────────────────────────────────────────────
+      - name: Upload deployed-commit record
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployed-commit-${{ github.run_number }}
+          path: deployed_commit.txt
+          retention-days: 90
