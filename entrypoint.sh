@@ -22,6 +22,17 @@ BRANCH="${PRIVATE_REPO_BRANCH:-main}"
 
 echo "[REDX] Cloning private source (${PRIVATE_REPO_OWNER}/${PRIVATE_REPO_NAME}@${BRANCH})..."
 
+# FIX (crash-loop after OOM): if the process crashed (e.g. heap OOM) and
+# Railway restarts the SAME container instead of a fresh one, /app/src
+# from the previous run is still on disk — `git clone` then fails with
+# "destination path already exists" on every single restart forever,
+# since set -e kills the script before it ever reaches node. Wipe any
+# leftover clone first so a crash-restart can always recover on its own.
+if [ -d /app/src ]; then
+  echo "[REDX] /app/src already exists (previous run's leftover) — removing before re-clone."
+  rm -rf /app/src
+fi
+
 git clone \
   --depth=1 \
   --branch "${BRANCH}" \
@@ -35,7 +46,22 @@ git -C /app/src remote set-url origin "https://github.com/${PRIVATE_REPO_OWNER}/
 # Clear token from env immediately
 unset REDX_PRIVATE_REPO_TOKEN
 
-echo "[REDX] Clone complete. Installing dependencies..."
+echo "[REDX] Clone complete."
+
+# Load ALL other config from the private repo's own .env — no need to
+# duplicate BOT_NAME, OWNER_NUMBER, MONGO_URL, SUPABASE_*, etc. in Railway
+# Variables. Only the 4 bridge vars above (token/owner/name/branch) must
+# stay in Railway, since they're needed before this file even exists.
+if [ -f /app/src/.env ]; then
+  echo "[REDX] Loading vars from private repo .env..."
+  set -a
+  . /app/src/.env
+  set +a
+else
+  echo "[REDX] WARNING: no .env found in private repo — relying on Railway Variables only." >&2
+fi
+
+echo "[REDX] Installing dependencies..."
 cd /app/src
 
 # FIX: no lockfile in repo, so `npm ci` is not usable (fails hard w/o package-lock.json).
@@ -69,4 +95,6 @@ if [ -z "${SUPABASE_URL}" ] && [ -z "${MONGO_URL}" ]; then
 fi
 
 echo "[REDX] Starting bot..."
-exec node index.js
+# Explicit heap ceiling so a leak degrades as GC pressure/slow responses
+# (visible in logs) rather than a hard OOM kill with no warning.
+exec node --max-old-space-size=${NODE_MAX_OLD_SPACE_MB:-1024} index.js
