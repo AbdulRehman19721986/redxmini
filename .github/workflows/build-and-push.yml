@@ -1,8 +1,11 @@
 name: Build and push image
+
 # Runs in the PUBLIC repo.
 # Clones private source at BUILD time using REDX_PRIVATE_REPO_TOKEN.
+# Uses the private repo's own Dockerfile + package.json.
 # Builds Docker image, pushes to GitHub Container Registry (ghcr.io).
 # Platforms pull the image — no secrets needed in platform dashboard.
+
 on:
   push:
     branches: [main]
@@ -15,7 +18,7 @@ on:
 
 permissions:
   contents: read
-  packages: write # required to push to ghcr.io
+  packages: write
 
 concurrency:
   group: build-and-push
@@ -24,12 +27,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout public repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
 
+    steps:
       - name: Clone private source
         env:
           REDX_PRIVATE_REPO_TOKEN: ${{ secrets.REDX_PRIVATE_REPO_TOKEN }}
@@ -38,15 +37,27 @@ jobs:
             echo "::error::REDX_PRIVATE_REPO_TOKEN secret not set." >&2
             exit 1
           fi
-          echo "Cloning private source..."
+
+          BRANCH="${{ vars.PRIVATE_REPO_BRANCH }}"
+          BRANCH="${BRANCH:-main}"
+
+          echo "Cloning private source (branch: ${BRANCH})..."
           git clone \
             --depth=1 \
-            --branch "${{ vars.PRIVATE_REPO_BRANCH || 'main' }}" \
+            --branch "${BRANCH}" \
             "https://x-access-token:${REDX_PRIVATE_REPO_TOKEN}@github.com/${{ vars.PRIVATE_REPO_OWNER }}/${{ vars.PRIVATE_REPO_NAME }}.git" \
             src/
-          echo "Clone complete. SHA: $(git -C src/ rev-parse HEAD)"
-          # Unset immediately — not needed after clone
           unset REDX_PRIVATE_REPO_TOKEN
+
+          # Verify package.json exists — fail fast with clear message
+          if [ ! -f "src/package.json" ]; then
+            echo "::error::package.json not found in private repo root. Clone may have failed or repo structure is unexpected." >&2
+            ls -la src/ >&2
+            exit 1
+          fi
+
+          echo "Clone OK. SHA: $(git -C src/ rev-parse HEAD)"
+          echo "package.json found: $(cat src/package.json | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get(\"name\",\"??\"), d.get(\"version\",\"??\"))')"
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -58,7 +69,9 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
+          # context = src/ so COPY . ./ in private Dockerfile gets package.json
           context: src/
+          # Use private repo's own Dockerfile
           file: src/Dockerfile
           push: true
           tags: |
@@ -69,7 +82,7 @@ jobs:
         run: |
           PRIVATE_SHA=$(git -C src/ rev-parse HEAD)
           echo "Private repo SHA: ${PRIVATE_SHA}"
-          echo "Public repo SHA: ${GITHUB_SHA}"
+          echo "Public repo SHA:  ${GITHUB_SHA}"
           echo "${PRIVATE_SHA}" > deployed_commit.txt
 
       - name: Upload commit record
