@@ -1,0 +1,86 @@
+name: Build and push image
+
+# Runs in the PUBLIC repo.
+# Clones private source at BUILD time using REDX_PRIVATE_REPO_TOKEN.
+# Builds Docker image, pushes to GitHub Container Registry (ghcr.io).
+# Platforms pull the image — no secrets needed in platform dashboard.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason for manual rebuild"
+        required: false
+        default: "manual"
+
+permissions:
+  contents: read
+  packages: write        # required to push to ghcr.io
+
+concurrency:
+  group: build-and-push
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout public repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Clone private source
+        env:
+          REDX_PRIVATE_REPO_TOKEN: ${{ secrets.REDX_PRIVATE_REPO_TOKEN }}
+        run: |
+          if [ -z "${REDX_PRIVATE_REPO_TOKEN}" ]; then
+            echo "::error::REDX_PRIVATE_REPO_TOKEN secret not set." >&2
+            exit 1
+          fi
+          echo "Cloning private source..."
+          git clone \
+            --depth=1 \
+            --branch "${{ vars.PRIVATE_REPO_BRANCH || 'main' }}" \
+            "https://x-access-token:${REDX_PRIVATE_REPO_TOKEN}@github.com/${{ vars.PRIVATE_REPO_OWNER }}/${{ vars.PRIVATE_REPO_NAME }}.git" \
+            src/
+          echo "Clone complete. SHA: $(git -C src/ rev-parse HEAD)"
+          # Unset immediately — not needed after clone
+          unset REDX_PRIVATE_REPO_TOKEN
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/redxbot302:latest
+            ghcr.io/${{ github.repository_owner }}/redxbot302:${{ github.sha }}
+
+      - name: Record deployed commit
+        run: |
+          PRIVATE_SHA=$(git -C src/ rev-parse HEAD)
+          echo "Private repo SHA: ${PRIVATE_SHA}"
+          echo "Public repo SHA:  ${GITHUB_SHA}"
+          echo "${PRIVATE_SHA}" > deployed_commit.txt
+
+      - name: Upload commit record
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployed-commit-${{ github.run_number }}
+          path: deployed_commit.txt
+          retention-days: 90
+
+      - name: Cleanup private source
+        if: always()
+        run: rm -rf src/
