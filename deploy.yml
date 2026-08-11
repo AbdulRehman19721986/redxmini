@@ -1,0 +1,97 @@
+name: Deploy
+
+# Runs in the PRIVATE repo. No cross-repo token is needed here: checking out
+# this repo's own code uses the automatic GITHUB_TOKEN, which never leaves
+# this repository and cannot read anything else.
+#
+# Note: if Render/Railway/Heroku's native GitHub App auto-deploy is already
+# enabled on this repo (see AUDIT_REPORT.md, Parts 9-11), that already
+# redeploys on every push with no Action involved. This workflow is
+# additive — it gives you commit tracking, a manual re-trigger, and a health
+# check on top of that, and is useful for platforms where auto-deploy isn't
+# enabled or you want a forced redeploy without a new commit.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Manual deploy reason"
+        required: false
+        default: "manual trigger"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Record commit being deployed
+        run: |
+          echo "Deploying commit ${GITHUB_SHA}"
+          echo "${GITHUB_SHA}" > deployed_commit.txt
+
+      # --- Render ---------------------------------------------------------
+      # Uses a Deploy Hook URL (Render dashboard -> service -> Settings ->
+      # Deploy Hook). Treat this URL as a secret; anyone with it can trigger
+      # a deploy. Skips silently if not configured, since Render's own
+      # GitHub App auto-deploy may already be handling this.
+      - name: Trigger Render deploy
+        if: ${{ vars.USE_RENDER == 'true' }}
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "${RENDER_DEPLOY_HOOK}" ]; then
+            echo "RENDER_DEPLOY_HOOK not set; skipping." 
+            exit 0
+          fi
+          curl -fsS -X POST "${RENDER_DEPLOY_HOOK}"
+
+      # --- Railway ----------------------------------------------------------
+      - name: Trigger Railway deploy
+        if: ${{ vars.USE_RAILWAY == 'true' }}
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -z "${RAILWAY_TOKEN}" ]; then
+            echo "RAILWAY_TOKEN not set; skipping."
+            exit 0
+          fi
+          npm install -g @railway/cli
+          railway up --detach
+
+      # --- Heroku -----------------------------------------------------------
+      # Pushes the exact checked-out commit straight to Heroku's git remote,
+      # authenticated with the API key over HTTPS basic auth (Heroku's
+      # supported mechanism) — avoids relying on GitHub tarball URLs, which
+      # don't support the auth private repos need.
+      - name: Trigger Heroku deploy
+        if: ${{ vars.USE_HEROKU == 'true' }}
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP_NAME: ${{ vars.HEROKU_APP_NAME }}
+        run: |
+          if [ -z "${HEROKU_API_KEY}" ] || [ -z "${HEROKU_APP_NAME}" ]; then
+            echo "HEROKU_API_KEY or HEROKU_APP_NAME not set; skipping."
+            exit 0
+          fi
+          git remote add heroku "https://heroku:${HEROKU_API_KEY}@git.heroku.com/${HEROKU_APP_NAME}.git"
+          git push heroku "HEAD:refs/heads/main" --force
+
+      - name: Upload deployed-commit record
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployed-commit
+          path: deployed_commit.txt
+          retention-days: 90

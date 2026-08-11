@@ -1,0 +1,60 @@
+name: Request redeploy
+
+# Manual only. This workflow does not build or deploy anything itself — it
+# asks the PRIVATE repo's own deploy.yml (workflow_dispatch trigger) to run.
+# It never checks out, reads, or receives the private repo's source.
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Why are you requesting a redeploy?"
+        required: false
+        default: "manual request"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: request-redeploy
+  cancel-in-progress: false
+
+env:
+  # Fill these in for your setup. The owner/repo/workflow file identify the
+  # PRIVATE repo's workflow this is allowed to trigger — nothing else.
+  PRIVATE_REPO_OWNER: "your-github-username"
+  PRIVATE_REPO_NAME: "your-private-repo"
+  PRIVATE_WORKFLOW_FILE: "deploy.yml"
+  PRIVATE_REPO_REF: "main"
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call workflow_dispatch on the private repo
+        env:
+          TOKEN: ${{ secrets.PRIVATE_REPO_DISPATCH_TOKEN }}
+        run: |
+          if [ -z "${TOKEN}" ]; then
+            echo "PRIVATE_REPO_DISPATCH_TOKEN is not set on this repo. See SECURITY.md." >&2
+            exit 1
+          fi
+
+          http_status=$(curl -sS -o /tmp/response.txt -w "%{http_code}" \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${PRIVATE_REPO_OWNER}/${PRIVATE_REPO_NAME}/actions/workflows/${PRIVATE_WORKFLOW_FILE}/dispatches" \
+            -d "{\"ref\":\"${PRIVATE_REPO_REF}\"}")
+
+          echo "GitHub API responded with HTTP ${http_status}"
+          cat /tmp/response.txt
+
+          # 204 No Content is success for this endpoint.
+          if [ "$http_status" != "204" ]; then
+            echo "Dispatch failed." >&2
+            exit 1
+          fi
+
+          echo "Redeploy requested on ${PRIVATE_REPO_OWNER}/${PRIVATE_REPO_NAME}@${PRIVATE_REPO_REF}."
