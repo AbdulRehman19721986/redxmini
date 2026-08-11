@@ -16,7 +16,7 @@ WORKDIR /app
 
 # Source is copied in by GitHub Actions build (cloned from private repo)
 # This Dockerfile never runs git clone itself — that happens in the workflow
-COPY src/ ./
+COPY . ./
 
 # Install dependencies
 RUN npm install \
