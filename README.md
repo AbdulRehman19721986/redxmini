@@ -22,16 +22,7 @@
 
 Deploy sets up the container. It won't boot the bot until you add the private-repo variables below.
 
-## ⚙️ Required Variables
 
-| Variable | Value |
-|---|---|
-| `REDX_PRIVATE_REPO_TOKEN` | Fine-grained GitHub PAT — `Contents: Read` on your private repo only |
-| `PRIVATE_REPO_OWNER` | Your GitHub username |
-| `PRIVATE_REPO_NAME` | Your private repo name |
-| `PRIVATE_REPO_BRANCH` | `main` |
-| `OWNER_NUMBER` | Your WhatsApp number |
-| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | Admin panel login — change from any default |
 
 Set these in your platform's **Variables/Config Vars UI** — never in this repo.
 
