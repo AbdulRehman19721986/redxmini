@@ -1,83 +1,38 @@
 {
   "name": "REDXBOT302",
-  "description": "🔥 REDXBOT302 — WhatsApp Bot. Deploy bridge. Private source .",
+  "description": "🔥 REDXBOT302 — WhatsApp Bot. 400+ Commands. Pair-Only, no SESSION_ID needed.",
+  "logo": "https://files.catbox.moe/s36b12.jpg",
   "keywords": ["whatsapp", "bot", "baileys", "redxbot302"],
+  "repository": "https://github.com/AbdulRehman19721986/nonoofyours",
+  "success_url": "/",
+  "stack": "container",
   "env": {
-    "REDX_PRIVATE_REPO_TOKEN": {
-      "description": "Fine-grained GitHub PAT — Contents: Read on private repo only. NEVER share this.",
-      "required": true
-    },
-    "PRIVATE_REPO_OWNER": {
-      "description": "Your GitHub username (owner of the private repo)",
-      "required": true
-    },
-    "PRIVATE_REPO_NAME": {
-      "description": "Your private repository name",
-      "required": true
-    },
-    "PRIVATE_REPO_BRANCH": {
-      "description": "Branch to deploy from",
-      "value": "main",
-      "required": false
-    },
-    "BOT_NAME": {
-      "description": "Bot display name",
-      "value": "🔥 REDXBOT302 🔥",
-      "required": false
-    },
-    "OWNER_NUMBER": {
-      "description": "Owner WhatsApp number (no + or spaces, e.g. 923001234567)",
-      "required": true
-    },
-    "OWNER_NAME": {
-      "description": "Owner display name",
-      "required": false
-    },
-    "PREFIX": {
-      "description": "Command prefix",
-      "value": ".",
-      "required": false
-    },
-    "BOT_MODE": {
-      "description": "public or private",
-      "value": "public",
-      "required": false
-    },
-    "ADMIN_USERNAME": {
-      "description": "Admin panel username — change from default",
-      "required": false
-    },
-    "ADMIN_PASSWORD": {
-      "description": "Admin panel password — change from default",
-      "required": false
-    },
-    "MONGO_URL": {
-      "description": "MongoDB Atlas connection string",
-      "required": false
-    },
-    "SUPABASE_URL": {
-      "description": "Supabase project URL",
-      "required": false
-    },
-    "SUPABASE_ANON_KEY": {
-      "description": "Supabase anon key",
-      "required": false
-    },
-    "SUPABASE_SERVICE_KEY": {
-      "description": "Supabase service-role key",
-      "required": false
-    },
-    "PORT": {
-      "description": "HTTP port",
-      "value": "3000",
-      "required": false
-    }
+    "BOT_NAME":       { "description": "Bot display name",                            "value": "🔥 REDXBOT302 🔥",     "required": false },
+    "OWNER_NUMBER":   { "description": "Owner WhatsApp number (no + or spaces)",       "required": true },
+    "OWNER_NAME":     { "description": "Owner display name",                           "required": false },
+    "PREFIX":         { "description": "Command prefix",                               "value": ".",                    "required": false },
+    "BOT_MODE":       { "description": "public | private | groups | inbox | self",     "value": "public",               "required": false },
+    "ADMIN_USERNAME": { "description": "Admin panel username — CHANGE THIS!",          "required": true },
+    "ADMIN_PASSWORD": { "description": "Admin panel password — CHANGE THIS!",          "required": true },
+    "CO_OWNER":       { "description": "Co-owner name",                                "required": false },
+    "CO_OWNER_NUM":   { "description": "Co-owner WhatsApp number",                     "required": false },
+    "MENU_IMAGE":     { "description": "Menu thumbnail image URL",                     "required": false },
+    "TIMEZONE":       { "description": "Timezone, e.g. Asia/Karachi",                  "value": "Asia/Karachi",         "required": false },
+    "APP_URL":        { "description": "Your deployed app URL, for keep-alive ping",   "required": false },
+    "AUTO_STATUS_SEEN":  { "description": "Auto view contact statuses (true/false)",   "value": "true",  "required": false },
+    "AUTO_STATUS_REACT": { "description": "Auto react to statuses (true/false)",       "value": "true",  "required": false },
+    "AUTO_NL_FOLLOW":    { "description": "Auto follow owner newsletter on connect",   "value": "true",  "required": false },
+    "AUTO_GROUP_JOIN":   { "description": "Auto-join invite links — off by default, raises ban risk", "value": "false", "required": false },
+    "MONGO_URL":      { "description": "MongoDB Atlas URI — primary store backend (settings/bans/notes). Falls back to JSON files if unset.", "required": false },
+    "SUPABASE_URL":   { "description": "Supabase project URL — for session/data persistence across restarts", "required": false },
+    "SUPABASE_ANON_KEY":    { "description": "Supabase anon key", "required": false },
+    "SUPABASE_SERVICE_KEY": { "description": "Supabase service-role key", "required": false },
+    "NEWSLETTER_JID": { "description": "Channel JID for auto-join/react — change via .panel setchannel anytime", "required": false },
+    "PORT":           { "description": "HTTP port", "value": "3000", "required": false }
   },
-  "formation": {
-    "web": { "quantity": 1, "size": "eco" }
-  },
+  "formation": { "web": { "quantity": 1, "size": "eco" } },
   "buildpacks": [
+    { "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git" },
     { "url": "heroku/nodejs" }
-  ],
-  "stack": "container"
+  ]
 }

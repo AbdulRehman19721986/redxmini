@@ -1,0 +1,10 @@
+{
+  "name": "redxbot302",
+  "version": "1.0.0",
+  "private": true,
+  "description": "REDXBOT302 — public deploy facade. Real source is a private repo, cloned at container startup.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}
