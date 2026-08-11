@@ -1,103 +1,93 @@
 # 🔥 REDXBOT302 — Deploy
 
-> This repo contains **no bot source code**.
-> It is a deploy bridge — the real bot is cloned from a private repo at container startup.
+> No source code in this repo.
+> GitHub Actions clones private source at build time, builds a Docker image, pushes to ghcr.io.
+> Platforms pull the image — **no secrets needed in platform dashboard**.
 
 ---
 
-## One-click deploy
-
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/YOUR_USERNAME/YOUR_PUBLIC_REPO)
-
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/YOUR_TEMPLATE_CODE)
-
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/YOUR_USERNAME/YOUR_PUBLIC_REPO)
-
-> Replace `YOUR_USERNAME/YOUR_PUBLIC_REPO` with this repo's actual URL.
-
----
-
-## How it works
+## Architecture
 
 ```
-Platform pulls this public repo (Dockerfile only)
+Push to public repo
         ↓
-Container starts → entrypoint.sh runs
+GitHub Actions (build-and-push.yml)
+        ↓ uses REDX_PRIVATE_REPO_TOKEN (GitHub secret)
+Clone private repo source
         ↓
-Clones private bot source using REDX_PRIVATE_REPO_TOKEN
+Build Docker image
         ↓
-npm install → node index.js
+Push → ghcr.io/USERNAME/redxbot302:latest
+        ↓
+Render / Railway / Heroku pulls image
         ↓
 Bot running 🔥
 ```
 
-No source code lives in this repo. No credentials live in any file.
-
 ---
 
-## Required environment variables
+## One-time setup
 
-Set these in your platform dashboard **before** deploying.
+### Step 1 — GitHub repo secrets (Settings → Secrets → Actions)
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `REDX_PRIVATE_REPO_TOKEN` | ✅ | Fine-grained GitHub PAT — see below |
-| `PRIVATE_REPO_OWNER` | ✅ | GitHub username of private repo owner |
-| `PRIVATE_REPO_NAME` | ✅ | Private repo name |
-| `PRIVATE_REPO_BRANCH` | ❌ | Branch to deploy (default: `main`) |
-| `OWNER_NUMBER` | ✅ | Your WhatsApp number (no `+`, e.g. `923001234567`) |
-| `BOT_NAME` | ❌ | Bot display name |
-| `PREFIX` | ❌ | Command prefix (default: `.`) |
-| `BOT_MODE` | ❌ | `public` or `private` |
-| `ADMIN_USERNAME` | ❌ | Admin panel username (change from default!) |
-| `ADMIN_PASSWORD` | ❌ | Admin panel password (change from default!) |
-| `MONGO_URL` | ❌ | MongoDB Atlas connection string |
-| `SUPABASE_URL` | ❌ | Supabase project URL |
-| `SUPABASE_ANON_KEY` | ❌ | Supabase anon key |
-| `SUPABASE_SERVICE_KEY` | ❌ | Supabase service-role key |
-| `PORT` | ❌ | HTTP port (default: `3000`) |
+| Name | Value |
+|------|-------|
+| `REDX_PRIVATE_REPO_TOKEN` | your fine-grained PAT (Contents: Read) |
 
----
+### Step 2 — GitHub repo variables (Settings → Variables → Actions)
 
-## Creating REDX_PRIVATE_REPO_TOKEN
+| Name | Value |
+|------|-------|
+| `PRIVATE_REPO_OWNER` | your GitHub username |
+| `PRIVATE_REPO_NAME` | your private repo name |
+| `PRIVATE_REPO_BRANCH` | `main` |
 
-This token lets the container clone your private repo. It needs the **minimum possible access**.
+### Step 3 — Make ghcr.io image public
 
-1. GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token
-2. Resource owner: your account
-3. Repository access: **Only select repositories** → your **private** bot repo
-4. Permissions → Repository permissions:
-   - **Contents: Read** ← only this
-   - Everything else: **No access**
-5. Expiration: 90 days (or custom)
-6. Generate → copy value
-7. Paste into your platform's environment variable dashboard as `REDX_PRIVATE_REPO_TOKEN`
+After first build:
+1. github.com → your profile → **Packages** → `redxbot302`
+2. Package settings → **Change visibility** → Public
 
-> ⚠️ Never put this token in any file. Never commit it. Set it only in the platform dashboard.
+This lets platforms pull without auth.
 
----
+### Step 4 — Connect platform to image
 
-## Platform setup
+**Render** — render.yaml already configured. Just set bot env vars (OWNER_NUMBER etc) in dashboard.
 
-### Render
-1. New Web Service → connect this public repo
-2. Environment → add all variables above
-3. Deploy
+**Railway** — New Project → Deploy Docker Image → `ghcr.io/YOUR_USERNAME/redxbot302:latest`
 
-### Railway
-1. New Project → Deploy from GitHub repo → this public repo
-2. Variables tab → add all variables above
-3. Deploy
-
-### Heroku
-1. Click the Heroku button above
-2. Fill in the env vars when prompted
-3. Deploy
+**Heroku**
+```bash
+heroku stack:set container -a YOUR_APP_NAME
+heroku config:set OWNER_NUMBER=923xxxxxxxxx -a YOUR_APP_NAME
+# push this repo to heroku remote
+```
 
 ---
 
 ## Updating the bot
 
-Push to your **private** repo → re-deploy on the platform (or enable auto-deploy).
+Push to **private repo** → run `build-and-push.yml` manually (Actions → Run workflow) → platform redeploys.
 
-The container always clones the latest commit from `PRIVATE_REPO_BRANCH` on startup.
+Or push to this **public repo** → workflow triggers automatically → new image built → redeploy on platform.
+
+---
+
+## Platform env vars needed (non-sensitive only)
+
+```
+OWNER_NUMBER=
+OWNER_NAME=
+BOT_NAME=
+PREFIX=.
+BOT_MODE=public
+ADMIN_USERNAME=
+ADMIN_PASSWORD=
+MONGO_URL=
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_KEY=
+PORT=3000
+```
+
+No `REDX_PRIVATE_REPO_TOKEN` in platform dashboard. GitHub Actions handles that.

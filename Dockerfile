@@ -14,9 +14,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy only the entrypoint — no source code lives here
-COPY entrypoint.sh ./entrypoint.sh
-RUN chmod +x ./entrypoint.sh
+# Source is copied in by GitHub Actions build (cloned from private repo)
+# This Dockerfile never runs git clone itself — that happens in the workflow
+COPY src/ ./
 
-# Runtime: entrypoint clones private source then starts bot
-CMD ["./entrypoint.sh"]
+# Install dependencies
+RUN npm install \
+    --omit=dev \
+    --no-audit \
+    --no-fund \
+    --legacy-peer-deps
+
+# Create required runtime directories
+RUN mkdir -p session temp data plugins public
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:3000/ || exit 1
+
+CMD ["node", "index.js"]

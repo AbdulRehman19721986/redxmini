@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: redxbot302
+    runtime: docker
+    image:
+      url: ghcr.io/YOUR_GITHUB_USERNAME/redxbot302:latest
+    envVars:
+      - key: BOT_NAME
+        sync: false
+      - key: OWNER_NUMBER
+        sync: false
+      - key: OWNER_NAME
+        sync: false
+      - key: PREFIX
+        value: "."
+      - key: BOT_MODE
+        value: "public"
+      - key: PORT
+        value: "3000"
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: MONGO_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: NEWSLETTER_JID
+        sync: false
+      - key: AUTO_STATUS_SEEN
+        value: "true"
+      - key: AUTO_STATUS_REACT
+        value: "true"
