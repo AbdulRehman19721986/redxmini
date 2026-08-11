@@ -52,11 +52,31 @@ echo "[REDX] Clone complete."
 # duplicate BOT_NAME, OWNER_NUMBER, MONGO_URL, SUPABASE_*, etc. in Railway
 # Variables. Only the 4 bridge vars above (token/owner/name/branch) must
 # stay in Railway, since they're needed before this file even exists.
+# FIX: `. /app/src/.env` treats every line as a shell COMMAND, not a
+# dotenv assignment. Any value with an unquoted space (e.g.
+# BOT_NAME=🔥 REDX MINI MD 🔥) breaks it — sh reads "BOT_NAME=🔥" as an
+# env-prefixed command and tries to *execute* the next word ("REDX") as
+# a program, hence "REDX: not found". Parse KEY=VALUE lines manually
+# instead so spaces/emoji/quotes in values are safe.
 if [ -f /app/src/.env ]; then
   echo "[REDX] Loading vars from private repo .env..."
-  set -a
-  . /app/src/.env
-  set +a
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      ''|'#'*) continue ;;   # blank line or full-line comment
+      *=*) ;;                 # looks like KEY=VALUE
+      *) continue ;;
+    esac
+    key="${line%%=*}"
+    val="${line#*=}"
+    key="$(printf '%s' "$key" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+    val="$(printf '%s' "$val" | sed -E 's/[[:space:]]+#.*$//')"   # strip inline comment
+    val="$(printf '%s' "$val" | sed -E 's/[[:space:]]+$//')"       # strip trailing space
+    case "$val" in
+      \"*\") val="${val#\"}"; val="${val%\"}" ;;
+      \'*\') val="${val#\'}"; val="${val%\'}" ;;
+    esac
+    [ -n "$key" ] && export "$key=$val"
+  done < /app/src/.env
 else
   echo "[REDX] WARNING: no .env found in private repo — relying on Railway Variables only." >&2
 fi
