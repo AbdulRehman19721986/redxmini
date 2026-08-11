@@ -1,141 +1,103 @@
-# REDX Deployment Bridge
+# 🔥 REDXBOT302 — Deploy
 
-> **This repository contains no application source code.**
-> The real application lives in a private repository.
-> Cloning this repo gives you only deployment tooling and documentation.
-
----
-
-## What this is
-
-A public deployment bridge for the REDX WhatsApp bot. It provides:
-
-- A manual redeploy trigger (GitHub Actions `workflow_dispatch`)
-- Deployment documentation
-- Security guidance
-
-The actual bot source, plugins, commands, database logic, and credentials are **private**.
+> This repo contains **no bot source code**.
+> It is a deploy bridge — the real bot is cloned from a private repo at container startup.
 
 ---
 
-## Architecture
+## One-click deploy
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/YOUR_USERNAME/YOUR_PUBLIC_REPO)
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/YOUR_TEMPLATE_CODE)
+
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/YOUR_USERNAME/YOUR_PUBLIC_REPO)
+
+> Replace `YOUR_USERNAME/YOUR_PUBLIC_REPO` with this repo's actual URL.
+
+---
+
+## How it works
 
 ```
-PUBLIC REPO (this repo)
-       │
-       │  REDX_PRIVATE_REPO_TOKEN
-       │  workflow_dispatch API call
-       ▼
-PRIVATE REPO
-       │
-       │  GitHub Actions (deploy.yml)
-       │  checks out private source
-       ▼
-Render / Railway / Heroku
+Platform pulls this public repo (Dockerfile only)
+        ↓
+Container starts → entrypoint.sh runs
+        ↓
+Clones private bot source using REDX_PRIVATE_REPO_TOKEN
+        ↓
+npm install → node index.js
+        ↓
+Bot running 🔥
 ```
 
-The public repo **never** receives, clones, or touches the private source.
+No source code lives in this repo. No credentials live in any file.
 
 ---
 
-## Quick setup
+## Required environment variables
 
-### 1. Configure the public repo workflow
+Set these in your platform dashboard **before** deploying.
 
-Edit `.github/workflows/trigger-deploy.yml` and set:
-
-```yaml
-env:
-  PRIVATE_REPO_OWNER: "your-github-username"
-  PRIVATE_REPO_NAME:  "your-private-repo-name"
-  PRIVATE_WORKFLOW_FILE: "deploy.yml"
-  PRIVATE_REPO_REF: "main"
-```
-
-### 2. Create the dispatch token
-
-See [SECURITY.md](./SECURITY.md) for exact steps.
-
-Minimum permission required: **Actions: Read and write** on the private repo only.
-
-### 3. Add the secret to this repo
-
-Settings → Secrets and variables → Actions → New repository secret:
-
-| Name | Value |
-|------|-------|
-| `REDX_PRIVATE_REPO_TOKEN` | your fine-grained PAT |
-
-**This is the only secret this public repo needs.**
-
-### 4. Copy `deploy.yml` to your private repo
-
-Place `.github/workflows/deploy.yml` in your **private** repository.
-
-Then configure variables and secrets in the **private** repo's Settings:
-
-**Variables** (non-sensitive):
-
-| Variable | Description |
-|----------|-------------|
-| `USE_RENDER` | `"true"` to enable Render |
-| `USE_RAILWAY` | `"true"` to enable Railway |
-| `USE_HEROKU` | `"true"` to enable Heroku |
-| `HEROKU_APP_NAME` | your Heroku app name |
-| `RAILWAY_PROJECT_ID` | Railway project ID |
-| `RAILWAY_SERVICE_NAME` | Railway service name |
-| `RAILWAY_ENVIRONMENT` | Railway environment (default: `production`) |
-| `APP_URL` | your deployment URL for health checks |
-
-**Secrets** (sensitive — private repo only):
-
-| Secret | Description |
-|--------|-------------|
-| `RENDER_DEPLOY_HOOK` | Render deploy-hook URL |
-| `RAILWAY_TOKEN` | Railway API token |
-| `HEROKU_API_KEY` | Heroku API key |
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `REDX_PRIVATE_REPO_TOKEN` | ✅ | Fine-grained GitHub PAT — see below |
+| `PRIVATE_REPO_OWNER` | ✅ | GitHub username of private repo owner |
+| `PRIVATE_REPO_NAME` | ✅ | Private repo name |
+| `PRIVATE_REPO_BRANCH` | ❌ | Branch to deploy (default: `main`) |
+| `OWNER_NUMBER` | ✅ | Your WhatsApp number (no `+`, e.g. `923001234567`) |
+| `BOT_NAME` | ❌ | Bot display name |
+| `PREFIX` | ❌ | Command prefix (default: `.`) |
+| `BOT_MODE` | ❌ | `public` or `private` |
+| `ADMIN_USERNAME` | ❌ | Admin panel username (change from default!) |
+| `ADMIN_PASSWORD` | ❌ | Admin panel password (change from default!) |
+| `MONGO_URL` | ❌ | MongoDB Atlas connection string |
+| `SUPABASE_URL` | ❌ | Supabase project URL |
+| `SUPABASE_ANON_KEY` | ❌ | Supabase anon key |
+| `SUPABASE_SERVICE_KEY` | ❌ | Supabase service-role key |
+| `PORT` | ❌ | HTTP port (default: `3000`) |
 
 ---
 
-## Manual redeploy
+## Creating REDX_PRIVATE_REPO_TOKEN
 
-1. This repo → Actions → **Request redeploy** → Run workflow
-2. Optionally enter a reason
-3. The private repo's `deploy.yml` runs automatically
+This token lets the container clone your private repo. It needs the **minimum possible access**.
+
+1. GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token
+2. Resource owner: your account
+3. Repository access: **Only select repositories** → your **private** bot repo
+4. Permissions → Repository permissions:
+   - **Contents: Read** ← only this
+   - Everything else: **No access**
+5. Expiration: 90 days (or custom)
+6. Generate → copy value
+7. Paste into your platform's environment variable dashboard as `REDX_PRIVATE_REPO_TOKEN`
+
+> ⚠️ Never put this token in any file. Never commit it. Set it only in the platform dashboard.
 
 ---
 
-## Automatic deploy
-
-The private repo's `deploy.yml` triggers on every push to `main`.
-No action needed in this public repo for routine deployments.
-
----
-
-## Rollback
+## Platform setup
 
 ### Render
-Dashboard → your service → **Deploys** tab → click any past deploy → **Redeploy**
+1. New Web Service → connect this public repo
+2. Environment → add all variables above
+3. Deploy
 
 ### Railway
-Dashboard → your service → **Deployments** → find a previous deployment → **Rollback** (or redeploy from that commit SHA)
+1. New Project → Deploy from GitHub repo → this public repo
+2. Variables tab → add all variables above
+3. Deploy
 
 ### Heroku
-```bash
-heroku releases -a YOUR_APP_NAME
-heroku rollback vNN -a YOUR_APP_NAME   # where NN is the version number
-```
+1. Click the Heroku button above
+2. Fill in the env vars when prompted
+3. Deploy
 
 ---
 
-## Which commit is deployed?
+## Updating the bot
 
-Every run of `deploy.yml` uploads an artifact named `deployed-commit-NNN` containing the deployed `GITHUB_SHA`. Check the private repo's Actions → the latest Deploy run → Artifacts.
+Push to your **private** repo → re-deploy on the platform (or enable auto-deploy).
 
----
-
-## Security
-
-See [SECURITY.md](./SECURITY.md) for the full threat model, token setup, and checklist.
-
-No credentials of any kind belong in this public repository.
+The container always clones the latest commit from `PRIVATE_REPO_BRANCH` on startup.

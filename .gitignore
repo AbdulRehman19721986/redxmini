@@ -1,12 +1,6 @@
-# Secrets — never commit real env files
 .env
 .env.*
 !.env.example
-
-# Runtime
 node_modules/
 *.log
-
-# OS
 .DS_Store
-Thumbs.db
