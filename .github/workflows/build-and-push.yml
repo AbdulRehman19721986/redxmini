@@ -1,10 +1,8 @@
 name: Build and push image
-
 # Runs in the PUBLIC repo.
 # Clones private source at BUILD time using REDX_PRIVATE_REPO_TOKEN.
 # Builds Docker image, pushes to GitHub Container Registry (ghcr.io).
 # Platforms pull the image — no secrets needed in platform dashboard.
-
 on:
   push:
     branches: [main]
@@ -61,6 +59,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: src/
+          file: ./Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/redxbot302:latest
