@@ -1,6 +1,6 @@
 {
   "name": "REDXBOT302",
-  "description": "🔥 REDXBOT302 — WhatsApp Bot. Deploy bridge. Private source cloned at runtime.",
+  "description": "🔥 REDXBOT302 — WhatsApp Bot. Deploy bridge. Private source .",
   "keywords": ["whatsapp", "bot", "baileys", "redxbot302"],
   "env": {
     "REDX_PRIVATE_REPO_TOKEN": {
