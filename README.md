@@ -26,24 +26,4 @@ Deploy sets up the container. It won't boot the bot until you add the private-re
 
 Set these in your platform's **Variables/Config Vars UI** — never in this repo.
 
-## 🔧 How it works
 
-```
-Platform pulls this public repo (Dockerfile + entrypoint.sh only)
-        ↓
-Container starts → entrypoint.sh runs
-        ↓ REDX_PRIVATE_REPO_TOKEN (from platform Variables)
-git clone private repo → /app/src
-        ↓
-git remote scrubbed (token never left readable on disk)
-        ↓
-npm ci / npm install → node index.js
-```
-
-The token is used once at clone time, never baked into the image, and the git remote is rewritten immediately after clone so it can't be read back out of `.git/config`.
-
----
-
-<div align="center">
-Powered by REDXBOT302
-</div>
